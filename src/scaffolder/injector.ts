@@ -1,57 +1,84 @@
 import fs from 'fs';
 import path from 'path';
 import chalk from 'chalk';
-import { specTemplates } from '../templates/spec-kit-wrapper';
 import { SupportedFramework } from '../analyzer/framework-detector';
 
-export function injectArchitecture(targetDir: string, framework: SupportedFramework) {
+function getTargetPath(toolName: string, targetDir: string): string {
+  switch(toolName) {
+    case 'Cursor': return path.join(targetDir, '.cursor', 'rules', 'tlc-spec-driven');
+    case 'Windsurf': return path.join(targetDir, '.windsurf', 'rules', 'tlc-spec-driven');
+    case 'Claude Code': return path.join(targetDir, '.claude', 'skills', 'tlc-spec-driven');
+    case 'Antigravity': return path.join(targetDir, '.gemini', 'antigravity', 'knowledge', 'tlc-spec-driven');
+    case 'Generic VSCode (Copilot)': return path.join(targetDir, '.github', 'copilot-instructions', 'tlc-spec-driven');
+    default: return path.join(targetDir, '.agents', 'skills', 'tlc-spec-driven');
+  }
+}
+
+export function injectArchitecture(targetDir: string, framework: SupportedFramework, tools: string[]) {
   try {
-    // Determine which template file to load
-    const templateFileName = framework === 'nextjs' ? 'next-rules.md' : (framework === 'react' ? 'react-rules.md' : 'node-rules.md');
-    
-    // Attempt resolving path based on current script execution (ts-node vs compiled output)
     const basePath = __dirname.includes('dist') 
         ? path.join(__dirname, '..', '..', 'src', 'templates') 
         : path.join(__dirname, '..', 'templates');
-        
-    let rulesContent = '';
+
+    // 1. Framework AI Rules
+    const templateFileName = framework === 'nextjs' ? 'next-rules.md' : (framework === 'react' ? 'react-rules.md' : 'node-rules.md');
     const templatePath = path.join(basePath, templateFileName);
+    let rulesContent = '';
     
     if (fs.existsSync(templatePath)) {
         rulesContent = fs.readFileSync(templatePath, 'utf-8');
     } else {
-        console.warn(chalk.yellow(`⚠️ Could not strictly locate the rules template at ${templatePath}, falling back to barebones prompt.`));
         rulesContent = `# ${framework.toUpperCase()} AI Environment Setup\nFollow standard SDD best practices.`;
     }
 
-    // 1. Write the .cursorrules file
     const cursorRulesPath = path.join(targetDir, '.cursorrules');
     fs.writeFileSync(cursorRulesPath, rulesContent);
-    console.log(chalk.green(`✔️  Generated .cursorrules containing robust ${framework} boundaries.`));
+    console.log(chalk.green(`✔️  Generated general AI guidelines (.cursorrules).`));
 
-    // 2. Generate Spec-Driven Directories and Initial Files
-    const sddPaths = {
-      spec: path.join(targetDir, 'specs'),
-      plan: path.join(targetDir, 'plans'),
-      task: path.join(targetDir, 'tasks'),
-    };
-
-    // Safely create directories if they don't exist
-    for (const p of Object.values(sddPaths)) {
-      if (!fs.existsSync(p)) fs.mkdirSync(p);
+    // 2. Local Skill Injection
+    const skillSourceDir = path.join(basePath, 'skills', 'tlc-spec-driven');
+    if (fs.existsSync(skillSourceDir)) {
+      console.log(chalk.blue(`\n📥 Sideloading localized TLC Agent Skills...`));
+      
+      for (const tool of tools) {
+        const destPath = getTargetPath(tool, targetDir);
+        fs.cpSync(skillSourceDir, destPath, { recursive: true, force: true });
+        console.log(chalk.magenta(`  ↳ Installed skills for ${chalk.bold(tool)} at ${destPath.replace(targetDir, '')}`));
+      }
+      
+      console.log(chalk.green(`✔️  Injected living SDD document schemas successfully.`));
+    } else {
+      console.warn(chalk.yellow(`⚠️ Sideloaded skill resources not found at ${skillSourceDir}`));
+    }
+    
+    // 3. Guarantee .specs structure tracking while ignoring agent local configs
+    const gitignorePath = path.join(targetDir, '.gitignore');
+    const ignoreBlock = `
+# AI WORKSPACES IGNORE
+.agents/
+.claude/
+.windsurf/
+.cursor/
+.gemini/
+`;
+    if (fs.existsSync(gitignorePath)) {
+      const gitignoreContent = fs.readFileSync(gitignorePath, 'utf-8');
+      if (!gitignoreContent.includes('# AI WORKSPACES IGNORE')) {
+        fs.appendFileSync(gitignorePath, ignoreBlock);
+        console.log(chalk.green(`✔️  Updated .gitignore to exclude agent runtime directories.`));
+      }
+    } else {
+      fs.writeFileSync(gitignorePath, ignoreBlock.trimStart());
+      console.log(chalk.green(`✔️  Created .gitignore to exclude agent runtime directories.`));
     }
 
-    // Write default Markdown templates into the architecture
-    const specFile = path.join(sddPaths.spec, 'spec.md');
-    if (!fs.existsSync(specFile)) fs.writeFileSync(specFile, specTemplates.specInit);
-
-    const planFile = path.join(sddPaths.plan, 'plan.md');
-    if (!fs.existsSync(planFile)) fs.writeFileSync(planFile, specTemplates.planInit);
-
-    const taskFile = path.join(sddPaths.task, 'tasks.md');
-    if (!fs.existsSync(taskFile)) fs.writeFileSync(taskFile, specTemplates.taskInit);
-
-    console.log(chalk.green(`✔️  Injected living SDD document schemas (specs/, plans/, tasks/).`));
+    // Initialize root .specs folder
+    const specsDir = path.join(targetDir, '.specs');
+    if (!fs.existsSync(specsDir)) {
+      fs.mkdirSync(specsDir, { recursive: true });
+      fs.writeFileSync(path.join(specsDir, '.gitkeep'), '');
+      console.log(chalk.green(`✔️  Scaffolded .specs workspace.`));
+    }
 
   } catch (error) {
     console.error(chalk.red('\n❌ Critical Exception during Injection:'), error);
