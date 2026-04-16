@@ -8,7 +8,8 @@ const commander_1 = require("commander");
 const chalk_1 = __importDefault(require("chalk"));
 const inquirer_1 = __importDefault(require("inquirer"));
 const framework_detector_1 = require("./analyzer/framework-detector");
-const injector_1 = require("./scaffolder/injector");
+const WorkspaceService_1 = require("./scaffolder/WorkspaceService");
+const AiTool_1 = require("./domain/enums/AiTool");
 const program = new commander_1.Command();
 program
     .name('ai-sdd-workspace')
@@ -19,23 +20,21 @@ program
     .description('Initialize the SDD workspace in the current directory')
     .option('--cursor', 'Setup for Cursor IDE')
     .option('--windsurf', 'Setup for Windsurf IDE')
-    .option('--claude', 'Setup for Claude Code')
     .option('--antigravity', 'Setup for Antigravity')
     .option('--vscode', 'Setup for Generic VSCode (Copilot)')
+    .option('--no-lint', 'Skip automated Linter and Prettier injection')
     .action(async (options) => {
     console.log(chalk_1.default.blue.bold('\n🚀 Welcome to AI - SDD Enginee for Workspaces!\n'));
     console.log(chalk_1.default.cyan('Starting the initialization process...'));
     const providedTools = [];
     if (options.cursor)
-        providedTools.push('Cursor');
+        providedTools.push(AiTool_1.AiTool.CURSOR);
     if (options.windsurf)
-        providedTools.push('Windsurf');
-    if (options.claude)
-        providedTools.push('Claude Code');
+        providedTools.push(AiTool_1.AiTool.WINDSURF);
     if (options.antigravity)
-        providedTools.push('Antigravity');
+        providedTools.push(AiTool_1.AiTool.ANTIGRAVITY);
     if (options.vscode)
-        providedTools.push('Generic VSCode (Copilot)');
+        providedTools.push(AiTool_1.AiTool.VSCODE);
     let tools = providedTools;
     if (tools.length === 0) {
         const answers = await inquirer_1.default.prompt([
@@ -50,11 +49,10 @@ program
                 name: 'selectedTools',
                 message: 'Which assistants/IDEs are you using in this workspace?',
                 choices: [
-                    'Cursor',
-                    'Windsurf',
-                    'Claude Code',
-                    'Antigravity',
-                    'Generic VSCode (Copilot)'
+                    AiTool_1.AiTool.CURSOR,
+                    AiTool_1.AiTool.WINDSURF,
+                    AiTool_1.AiTool.ANTIGRAVITY,
+                    AiTool_1.AiTool.VSCODE
                 ],
                 when: (answers) => answers.confirmInit
             }
@@ -73,7 +71,8 @@ program
     const framework = (0, framework_detector_1.detectFramework)(targetDir);
     console.log(chalk_1.default.yellow(`\n[Analyzer] Detected Target Framework: ${chalk_1.default.bold(framework)}`));
     console.log(chalk_1.default.cyan(`[Injector] Sideloading AI engineering rules and SDD framework...\n`));
-    (0, injector_1.injectArchitecture)(targetDir, framework, tools);
+    const orchestrator = new WorkspaceService_1.WorkspaceService();
+    orchestrator.execute(targetDir, framework, tools, { skipLint: !options.lint });
     console.log(chalk_1.default.green.bold('\n✨ Workspace successfully prepared for advanced Spec-Driven Development!'));
 });
 program.parse(process.argv);

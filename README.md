@@ -5,9 +5,11 @@ An open-source CLI tool to quickly bootstrap "AI-Friendly", Spec-Driven Developm
 ## Core Features
 
 - **Framework Detection**: Analyzes `package.json` to automatically detect Node.js, Next.js, or React.js.
+- **Strict Linting Pipelines**: Injects tailored `.eslintrc.json`, `.prettierrc`, mutates package scripts (`lint`, `format`), and automatically pulls required dev-dependencies using `npm install`.
 - **Agent Skill Internalization**: Vendored, fully offline integration of SDD Agent Skills (adapted from [tech-leads-club/agent-skills](https://github.com/tech-leads-club/agent-skills)).
-- **Interactive Multi-IDE Setup**: Specify tools through a UI or CLI args to scaffold specific directories natively (e.g., `.cursor/rules/`, `.claude/skills/`).
+- **Interactive Multi-IDE Setup**: Specify tools through a UI or CLI args to scaffold specific directories natively (e.g., `.cursor/rules/`, `.agent/skills/`).
 - **Workspace Hygiene**: Automatically configures `.gitignore` to prevent AI runtime configuration bloat while keeping the `.specs/` logic tracked.
+- **SOLID Core Architecture**: Uses robust Strategy/Provider design patterns internally to decouple IDE routing (`IdeProvider`) from Framework ecosystems (`FrameworkProvider`).
 
 ## Usage
 
@@ -22,7 +24,13 @@ npx ai-sdd-workspace init
 You can bypass the interactive prompt by specifying your AI tools natively:
 
 ```bash
-npx ai-sdd-workspace init --cursor --antigravity --claude --windsurf --vscode
+npx ai-sdd-workspace init --cursor --antigravity --windsurf --vscode
+```
+
+If you do NOT want the CLI to enforce strict linting parameters, you can opt-out:
+
+```bash
+npx ai-sdd-workspace init --no-lint
 ```
 
 ## Contributing

@@ -6,4 +6,5 @@
 4. **Typings:** All Request schemas and Response payloads must be heavily typed (e.g., using Zod or TS native interfaces).
 
 ## Spec-Driven Rules [CRITICAL]
+
 Do not write code based on vibes or simple guesses. You must consult the living specifications inside `/specs`, `/plans`, and `/tasks`. Update the task list frequently.

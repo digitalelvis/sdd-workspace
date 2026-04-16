@@ -1,36 +1,27 @@
-import fs from 'fs';
-import path from 'path';
-
-export type SupportedFramework = 'nextjs' | 'react' | 'nodejs';
+import fs from "fs";
+import path from "path";
+import { SupportedFramework } from "../domain/enums/SupportedFramework";
 
 export function detectFramework(targetDir: string): SupportedFramework {
-  const packageJsonPath = path.join(targetDir, 'package.json');
-  
-  if (!fs.existsSync(packageJsonPath)) {
-    // If there is no package.json in the current dir, default to nodejs
-    return 'nodejs';
+  const pkgPath = path.join(targetDir, "package.json");
+  if (!fs.existsSync(pkgPath)) {
+    return SupportedFramework.NODEJS;
   }
 
   try {
-    const pkgContent = fs.readFileSync(packageJsonPath, 'utf-8');
-    const pkg = JSON.parse(pkgContent);
+    const pkgData = fs.readFileSync(pkgPath, "utf-8");
+    const pkg = JSON.parse(pkgData);
 
     const deps = { ...pkg.dependencies, ...pkg.devDependencies };
 
-    // Detection priority matters: Next.js implies React, so check Next first.
-    if (deps['next']) {
-      return 'nextjs';
+    if (deps["next"]) {
+      return SupportedFramework.NEXTJS;
+    } else if (deps["react"]) {
+      return SupportedFramework.REACT;
     }
-
-    // Checking for a pure React/Vite environment
-    if (deps['react']) {
-      return 'react';
-    }
-
-    // Default fallback
-    return 'nodejs';
-  } catch (error) {
-    console.warn('⚠️ Could not parse package.json. Defaulting to general Node.js rules.', error);
-    return 'nodejs';
+  } catch (e) {
+    console.warn("⚠️ Could not parse package.json, defaulting to Node.js.");
   }
+
+  return SupportedFramework.NODEJS;
 }

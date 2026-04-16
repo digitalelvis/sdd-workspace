@@ -27,6 +27,7 @@ coverage/
 
 # AI WORKSPACES IGNORE
 .agents/
+.agent/
 .claude/
 .windsurf/
 .cursor/
