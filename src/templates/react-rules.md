@@ -1,10 +1,8 @@
-# React (Vite/CRA) Application Engineering Rules
+## 2. Framework Guidelines: React
 
-1. **Component Purity:** Keep components as pure functions as much as possible. Abstract complex state logic into custom hooks.
-2. **State Management:** Use localized state (useState, useReducer) before jumping to global state (Zustand, Redux). Keep global state flat.
-3. **Typings:** Strictly type all React Components, Props, and state variables using TypeScript.
-4. **Data Fetching:** For client-side single-page applications, utilize robust fetching libraries like React Query or SWR instead of naive `useEffect` fetch calls.
+You are operating within a React environment. Before implementing components, hooks, or setting up state management, you MUST consult the stack-specific skills injected into the workspace:
 
-## Spec-Driven Rules [CRITICAL]
+- **React Best Practices:** Read and adhere to `.agents/skills/react-best-practices/SKILL.md`.
+- **React UI Patterns:** For UI implementations and layouts, adhere to `.agents/skills/react-ui-patterns/SKILL.md`.
 
-Do not write code based on vibes or simple guesses. You must consult the living specifications inside `/specs`, `/plans`, and `/tasks`. Update the task list frequently.
+Always combine these stack rules with the overarching SDD methodology.

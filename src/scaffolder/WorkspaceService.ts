@@ -1,33 +1,49 @@
 import fs from "fs";
 import path from "path";
 import chalk from "chalk";
-import { SupportedFramework } from "../domain/enums/SupportedFramework";
-import { AiTool } from "../domain/enums/AiTool";
+import { SupportedStack } from "../domain/enums/SupportedStack";
+import { AiAgent } from "../domain/enums/AiAgent";
+import { SetupOptions, StackProvider } from "../domain/contracts/StackProvider";
 
-// IDE Providers
-import { CursorProvider } from "./providers/ide/CursorProvider";
-import { WindsurfProvider } from "./providers/ide/WindsurfProvider";
-import { AntigravityProvider } from "./providers/ide/AntigravityProvider";
-import { VSCodeProvider } from "./providers/ide/VSCodeProvider";
+// Stacks
+import { NodeStackProvider } from "./providers/stacks/NodeStackProvider";
+import { ReactStackProvider } from "./providers/stacks/ReactStackProvider";
+import { NextJsStackProvider } from "./providers/stacks/NextJsStackProvider";
 
-// Framework Providers
-import { NodeProvider } from "./providers/frameworks/NodeProvider";
-import { ReactProvider } from "./providers/frameworks/ReactProvider";
-import { NextJsProvider } from "./providers/frameworks/NextJsProvider";
-import { SetupOptions } from "../domain/contracts/FrameworkProvider";
+// Engines
+import { SDDEngine } from "./engines/SDDEngine";
+import { EcosystemEngine } from "./engines/EcosystemEngine";
 
 export class WorkspaceService {
-  constructor() {}
+  private readonly ecosystemEngine = new EcosystemEngine();
+  private readonly sddEngine = new SDDEngine();
 
   public execute(
     targetDir: string,
-    framework: SupportedFramework,
-    tools: AiTool[],
+    stacks: SupportedStack[],
+    ide: string | undefined,
+    agents: AiAgent[],
     options: SetupOptions,
   ) {
     try {
-      this.setupFrameworkEcosystem(targetDir, framework, options);
-      this.injectAiStructure(targetDir, framework, tools);
+      // 1. Resolve Providers Factory
+      const stackProviders = this.resolveStackProviders(stacks);
+
+      // 2. Provision physical ecosystem (Lint, local config folders)
+      this.ecosystemEngine.setup(targetDir, stackProviders, ide, options);
+
+      // 3. Inject SDD specific routines
+      this.sddEngine.inject(targetDir, stackProviders, agents);
+      
+      // 4. Guarantee tracking while ignoring agent local configs
+      this.ensureGitignore(targetDir);
+
+      // Initialize root .specs folder
+      const rootSpecsDir = path.join(targetDir, ".specs");
+      if (!fs.existsSync(rootSpecsDir)) {
+        fs.mkdirSync(rootSpecsDir, { recursive: true });
+        console.log(chalk.green("✔️  Initialized workspace root specifications directory at .specs/"));
+      }
     } catch (error) {
       console.error(
         chalk.red("\n❌ Critical Exception during Injection:"),
@@ -36,128 +52,59 @@ export class WorkspaceService {
     }
   }
 
-  private setupFrameworkEcosystem(
-    targetDir: string,
-    framework: SupportedFramework,
-    options: SetupOptions,
-  ) {
-    let frameworkProvider;
-    switch (framework) {
-      case SupportedFramework.NEXTJS:
-        frameworkProvider = new NextJsProvider();
-        break;
-      case SupportedFramework.REACT:
-        frameworkProvider = new ReactProvider();
-        break;
-      case SupportedFramework.NODEJS:
-      default:
-        frameworkProvider = new NodeProvider();
-        break;
-    }
-    frameworkProvider.setupEcosystem(targetDir, options);
-  }
-
-  private injectAiStructure(
-    targetDir: string,
-    framework: SupportedFramework,
-    tools: AiTool[],
-  ) {
-    const basePath = __dirname.includes("dist")
-      ? path.join(__dirname, "..", "..", "src", "templates")
-      : path.join(__dirname, "..", "templates");
-
-    // 1. Framework AI Rules
-    const templateFileName =
-      framework === SupportedFramework.NEXTJS
-        ? "next-rules.md"
-        : framework === SupportedFramework.REACT
-          ? "react-rules.md"
-          : "node-rules.md";
-    const templatePath = path.join(basePath, templateFileName);
-    let rulesContent = "";
-
-    if (fs.existsSync(templatePath)) {
-      rulesContent = fs.readFileSync(templatePath, "utf-8");
-    } else {
-      rulesContent = `# ${framework.toUpperCase()} AI Environment Setup\nFollow standard SDD best practices.`;
-    }
-
-    const cursorRulesPath = path.join(targetDir, ".cursorrules");
-    fs.writeFileSync(cursorRulesPath, rulesContent);
-    console.log(
-      chalk.green(`✔️  Generated general AI guidelines (.cursorrules).`),
-    );
-
-    // 2. Local Skill Injection
-    const skillSourceDir = path.join(basePath, "skills", "tlc-spec-driven");
-    if (fs.existsSync(skillSourceDir)) {
-      console.log(chalk.blue(`\n📥 Sideloading localized TLC Agent Skills...`));
-
-      const ideProviders = [
-        new CursorProvider(),
-        new WindsurfProvider(),
-        new AntigravityProvider(),
-        new VSCodeProvider(),
-      ];
-
-      for (const tool of tools) {
-        const provider = ideProviders.find((p) => p.tool === tool);
-        if (provider) {
-          provider.injectSkill(targetDir, skillSourceDir);
-        }
+  private resolveStackProviders(stacks: SupportedStack[]): StackProvider[] {
+    const providers: StackProvider[] = [];
+    for (const stack of stacks) {
+      switch (stack) {
+        case SupportedStack.NEXTJS:
+          providers.push(new NextJsStackProvider());
+          break;
+        case SupportedStack.REACT:
+          providers.push(new ReactStackProvider());
+          break;
+        case SupportedStack.NODEJS:
+        case SupportedStack.PYTHON:
+        case SupportedStack.PHP:
+        case SupportedStack.LARAVEL:
+        case SupportedStack.VUE:
+        default:
+          // Fallback basic stack config when unknown
+          providers.push(new NodeStackProvider());
+          break;
       }
-
-      console.log(
-        chalk.green(`✔️  Injected living SDD document schemas successfully.`),
-      );
-    } else {
-      console.warn(
-        chalk.yellow(
-          `⚠️ Sideloaded skill resources not found at ${skillSourceDir}`,
-        ),
-      );
     }
-
-    // 3. Guarantee .specs structure tracking while ignoring agent local configs
-    this.ensureGitignore(targetDir);
-
-    // Initialize root .specs folder
-    const specsDir = path.join(targetDir, ".specs");
-    if (!fs.existsSync(specsDir)) {
-      fs.mkdirSync(specsDir, { recursive: true });
-      fs.writeFileSync(path.join(specsDir, ".gitkeep"), "");
-      console.log(chalk.green(`✔️  Scaffolded .specs workspace.`));
-    }
+    return providers;
   }
 
-  private ensureGitignore(targetDir: string) {
+  private ensureGitignore(targetDir: string): void {
     const gitignorePath = path.join(targetDir, ".gitignore");
-    const ignoreBlock = `
-# AI WORKSPACES IGNORE
-.agents/
-.agent/
-.claude/
-.windsurf/
+    const aiIgnoreBlock = `
+# ==========================================
+# SDD: AI & Environment Agent Configuration
+# ==========================================
 .cursor/
-.gemini/
+.cursorrules
+.windsurf/
+.windsurfrules
+.antigravity/
+.agent/
+.agents/rules/
+.vscode/
+
+# Keep specs tracked, but rules logic completely separate
+!/.specs
+!/.agents/skills
 `;
+
     if (fs.existsSync(gitignorePath)) {
       const gitignoreContent = fs.readFileSync(gitignorePath, "utf-8");
-      if (!gitignoreContent.includes("# AI WORKSPACES IGNORE")) {
-        fs.appendFileSync(gitignorePath, ignoreBlock);
-        console.log(
-          chalk.green(
-            `✔️  Updated .gitignore to exclude agent runtime directories.`,
-          ),
-        );
+      if (!gitignoreContent.includes("SDD: AI & Environment Agent Configuration")) {
+        fs.appendFileSync(gitignorePath, `\n${aiIgnoreBlock}`);
+        console.log(chalk.green("✔️  Appended AI workspace ignoring rules to .gitignore."));
       }
     } else {
-      fs.writeFileSync(gitignorePath, ignoreBlock.trimStart());
-      console.log(
-        chalk.green(
-          `✔️  Created .gitignore to exclude agent runtime directories.`,
-        ),
-      );
+      fs.writeFileSync(gitignorePath, aiIgnoreBlock.trim() + "\n");
+      console.log(chalk.green("✔️  Created .gitignore with AI rules."));
     }
   }
 }

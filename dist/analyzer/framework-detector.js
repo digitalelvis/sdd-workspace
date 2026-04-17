@@ -6,25 +6,32 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.detectFramework = detectFramework;
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
-const SupportedFramework_1 = require("../domain/enums/SupportedFramework");
+const SupportedStack_1 = require("../domain/enums/SupportedStack");
 function detectFramework(targetDir) {
-    const pkgPath = path_1.default.join(targetDir, 'package.json');
+    const pkgPath = path_1.default.join(targetDir, "package.json");
+    const detectedStacks = [];
     if (!fs_1.default.existsSync(pkgPath)) {
-        return SupportedFramework_1.SupportedFramework.NODEJS;
+        detectedStacks.push(SupportedStack_1.SupportedStack.NODEJS);
+        return detectedStacks;
     }
     try {
-        const pkgData = fs_1.default.readFileSync(pkgPath, 'utf-8');
+        const pkgData = fs_1.default.readFileSync(pkgPath, "utf-8");
         const pkg = JSON.parse(pkgData);
         const deps = { ...pkg.dependencies, ...pkg.devDependencies };
-        if (deps['next']) {
-            return SupportedFramework_1.SupportedFramework.NEXTJS;
+        if (deps["next"]) {
+            detectedStacks.push(SupportedStack_1.SupportedStack.NEXTJS);
+            detectedStacks.push(SupportedStack_1.SupportedStack.REACT);
         }
-        else if (deps['react']) {
-            return SupportedFramework_1.SupportedFramework.REACT;
+        else if (deps["react"]) {
+            detectedStacks.push(SupportedStack_1.SupportedStack.REACT);
         }
+        // Always attach NodeJS as base if we have package.json for now
+        detectedStacks.push(SupportedStack_1.SupportedStack.NODEJS);
     }
     catch (e) {
-        console.warn('⚠️ Could not parse package.json, defaulting to Node.js.');
+        console.warn("⚠️ Could not parse package.json, defaulting to Node.js.");
+        detectedStacks.push(SupportedStack_1.SupportedStack.NODEJS);
     }
-    return SupportedFramework_1.SupportedFramework.NODEJS;
+    // Ensure unique elements in case logic overlaps
+    return Array.from(new Set(detectedStacks));
 }

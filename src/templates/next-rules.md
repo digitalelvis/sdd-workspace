@@ -1,10 +1,8 @@
-# Next.js Application Engineering Rules
+## 2. Framework Guidelines: Next.js
 
-1. **Prioritize Server Components:** By default, all newly generated components must be React Server Components. Only place `'use client'` explicitly at the top of the file when strictly needing interactivity (hooks like `useState`, `useEffect`) or browser web APIs.
-2. **Server Actions First:** For forms and data mutations, utilize React Server Actions before falling back to Route Handlers (`/api/`), unless building a public-facing REST API.
-3. **Strict Typings:** Enforce strict TypeScript typing across all boundaries, particularly on DB querying results and React Props.
-4. **Performance:** Aggressively utilize `next/image`, `next/link`, and `next/font` for optimizations to preserve Core Web Vitals.
+You are operating within a Next.js environment. Before implementing layouts, data fetching, or server components, you MUST consult the stack-specific skills injected into the workspace:
 
-## Spec-Driven Rules [CRITICAL]
+- **Next.js Best Practices & App Router Patterns:** Read and adhere to the guidelines at `.agents/skills/nextjs-best-practices/SKILL.md` and `.agents/skills/nextjs-app-router-patterns/SKILL.md`.
+- **React Foundation:** For component design and state management, adhere to `.agents/skills/react-best-practices/SKILL.md`.
 
-Do not write code based on vibes or simple guesses. You must consult the living specifications inside `/specs`, `/plans`, and `/tasks`. Update the task list frequently.
+Always combine these stack rules with the overarching SDD methodology.

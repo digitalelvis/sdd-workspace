@@ -1,15 +1,17 @@
-import { AiTool } from "../enums/AiTool";
+import { IdeEnvironment } from "../enums/IdeEnvironment";
 
 export interface IdeProvider {
   /**
-   * The tool enum that this provider supports.
+   * The string identifier for the IDE (e.g., 'vscode', 'cursor', 'windsurf')
    */
-  readonly tool: AiTool;
+  readonly ide: IdeEnvironment;
 
   /**
-   * Injects the AI skill logic into the specific architecture of the IDE.
-   * @param targetDir The absolute path of the user's workspace
-   * @param skillSourceDir The path where the localized vendor skill lives
+   * Sets up any local physical configurations for the IDE in the workspace
+   * (e.g. creating .vscode/settings.json, recommended extensions)
+   * 
+   * @param targetDir The root workspace directory
+   * @param options General setup options
    */
-  injectSkill(targetDir: string, skillSourceDir: string): void;
+  setupIdeConfig(targetDir: string, options?: any): void;
 }

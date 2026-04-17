@@ -3,13 +3,15 @@ import path from "path";
 import chalk from "chalk";
 import { execSync } from "child_process";
 import {
-  FrameworkProvider,
+  StackProvider,
   SetupOptions,
-} from "../../../domain/contracts/FrameworkProvider";
-import { SupportedFramework } from "../../../domain/enums/SupportedFramework";
+} from "../../../domain/contracts/StackProvider";
+import { SupportedStack } from "../../../domain/enums/SupportedStack";
 
-export abstract class BaseFrameworkProvider implements FrameworkProvider {
-  abstract readonly framework: SupportedFramework;
+export abstract class BaseStackProvider implements StackProvider {
+  abstract readonly stack: SupportedStack;
+  abstract readonly defaultSkills: string[];
+  abstract readonly ruleTemplateFile: string;
 
   protected abstract getLinterDependencies(): string[];
 
@@ -25,7 +27,7 @@ export abstract class BaseFrameworkProvider implements FrameworkProvider {
 
     console.log(
       chalk.blue(
-        `\n📥 Configuring ${this.framework.toUpperCase()} Linter and Prettier rules...`,
+        `\n📥 Configuring ${this.stack.toUpperCase()} Linter and Prettier rules...`,
       ),
     );
     this.injectConfigTemplates(targetDir);
@@ -38,13 +40,13 @@ export abstract class BaseFrameworkProvider implements FrameworkProvider {
       ? path.join(__dirname, "..", "..", "..", "src", "templates")
       : path.join(__dirname, "..", "..", "templates");
 
-    const lintSourceDir = path.join(basePath, "lint", this.framework);
+    const lintSourceDir = path.join(basePath, "lint", this.stack);
 
     if (fs.existsSync(lintSourceDir)) {
       fs.cpSync(lintSourceDir, targetDir, { recursive: true, force: true });
       console.log(
         chalk.green(
-          `✔️  Injected strict .eslintrc.json and .prettierrc for ${this.framework}.`,
+          `✔️  Injected strict .eslintrc.json and .prettierrc for ${this.stack}.`,
         ),
       );
     } else {
