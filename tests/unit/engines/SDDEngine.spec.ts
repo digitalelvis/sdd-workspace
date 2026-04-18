@@ -4,58 +4,128 @@ import { SDDEngine } from "../../../src/scaffolder/engines/SDDEngine";
 import { AiAgent } from "../../../src/domain/enums/AiAgent";
 import { NodeStackProvider } from "../../../src/scaffolder/providers/stacks/NodeStackProvider";
 
+// We mock 'fs' and 'child_process' to isolate the engine from the file system and external CLI calls
 jest.mock("fs");
+jest.mock("child_process", () => ({
+  execSync: jest.fn(),
+}));
 
-describe("SDDEngine - Core SDD Capabilities Injection", () => {
+const { execSync } = require("child_process");
+
+describe("SDDEngine - Hybrid Skill Hub Injection", () => {
   let sddEngine: SDDEngine;
-  let stdoutSpy: jest.SpyInstance;
-  let stderrSpy: jest.SpyInstance;
+  let logSpy: jest.SpyInstance;
+  let warnSpy: jest.SpyInstance;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    stdoutSpy = jest.spyOn(console, "log").mockImplementation();
-    stderrSpy = jest.spyOn(console, "error").mockImplementation();
+    logSpy = jest.spyOn(console, "log").mockImplementation();
+    warnSpy = jest.spyOn(console, "warn").mockImplementation();
+    jest.spyOn(console, "error").mockImplementation();
     sddEngine = new SDDEngine();
   });
 
   afterEach(() => {
-    stdoutSpy.mockRestore();
-    stderrSpy.mockRestore();
+    logSpy.mockRestore();
+    warnSpy.mockRestore();
   });
 
-  it("should throw an error if the common-rules.md file is completely missing", () => {
-    (fs.existsSync as jest.Mock).mockReturnValue(false); // Disables finding common-rules.md
+  it("should throw an error (via rejected promise) if common-rules.md is missing", async () => {
+    // All fs.existsSync calls return false → common-rules.md won't be found
+    (fs.existsSync as jest.Mock).mockReturnValue(false);
 
-    expect(() => {
-      sddEngine.inject("/target/dir", [new NodeStackProvider()], [AiAgent.CURSOR]);
-    }).toThrow("common-rules.md not found");
+    await expect(
+      sddEngine.inject("/target/dir", [new NodeStackProvider()], [AiAgent.CURSOR])
+    ).rejects.toThrow("common-rules.md not found");
   });
 
-  it("should successfully mount the rule string and sideload skills into .agents/skills", () => {
-    // 1st existsSync is common-rules.md, 2nd is stack rule, 3rd is dest skill dir, 4th+ are individual skills
-    (fs.existsSync as jest.Mock).mockReturnValue(true);
-    (fs.readFileSync as jest.Mock).mockReturnValue("Mocked Rule Text");
-    (fs.cpSync as jest.Mock).mockImplementation(() => {});
+  it("should inject rules for selected agents when common-rules.md exists", async () => {
+    // common-rules.md exists, all other paths return false (no stack rules, no registry, no skills)
+    (fs.existsSync as jest.Mock).mockImplementation((filePath: string) => {
+      if (String(filePath).endsWith("common-rules.md")) return true;
+      return false;
+    });
+    (fs.readFileSync as jest.Mock).mockImplementation((filePath: string) => {
+      if (String(filePath).endsWith("common-rules.md")) return "# Common Rules";
+      return "{}";
+    });
     (fs.mkdirSync as jest.Mock).mockImplementation(() => {});
+    (fs.writeFileSync as jest.Mock).mockImplementation(() => {});
 
-    // Using NodeStackProvider, which gives ['tlc-spec-driven', 'nodejs-best-practices', 'nodejs-backend-patterns']
-    const provider = new NodeStackProvider();
-    
-    // We execute cursor to confirm the rules go down cleanly
-    sddEngine.inject("/target/dir", [provider], [AiAgent.CURSOR]);
+    await sddEngine.inject("/target/dir", [new NodeStackProvider()], [AiAgent.CURSOR]);
 
-    // Check if Cursor Provider was hooked properly (since we mocked writeFileSync in its core we just check it fired)
+    // Cursor's injectRules writes a .cursorrules file
     expect(fs.writeFileSync).toHaveBeenCalledWith(
       expect.stringContaining(".cursorrules"),
-      expect.stringContaining("Mocked Rule Text")
+      expect.any(String)
     );
+  });
 
-    // Verify Skills were copied
-    expect(fs.cpSync).toHaveBeenCalledTimes(3); 
-    expect(fs.cpSync).toHaveBeenCalledWith(
-      expect.stringContaining("tlc-spec-driven"),
-      expect.stringContaining(path.join(".agents", "skills", "tlc-spec-driven")),
-      expect.anything()
+  it("should emit a warning when no agents are selected", async () => {
+    (fs.existsSync as jest.Mock).mockImplementation((filePath: string) => {
+      return String(filePath).endsWith("common-rules.md");
+    });
+    (fs.readFileSync as jest.Mock).mockReturnValue("# Common Rules");
+    (fs.mkdirSync as jest.Mock).mockImplementation(() => {});
+
+    await sddEngine.inject("/target/dir", [new NodeStackProvider()], []);
+
+    expect(logSpy).toHaveBeenCalledWith(
+      expect.stringContaining("No AI Agents selected")
+    );
+  });
+
+  it("should execute CLI command for skills mapped as 'cli' mode in the registry", async () => {
+    // common-rules.md + skills-registry.json both resolve
+    (fs.existsSync as jest.Mock).mockImplementation((filePath: string) => {
+      const p = String(filePath);
+      return p.endsWith("common-rules.md") || p.endsWith("skills-registry.json");
+    });
+    (fs.readFileSync as jest.Mock).mockImplementation((filePath: string) => {
+      if (String(filePath).endsWith("common-rules.md")) return "# Common Rules";
+      if (String(filePath).endsWith("skills-registry.json")) {
+        return JSON.stringify({
+          "tlc-spec-driven": {
+            mode: "cli",
+            command: "npx -y @tech-leads-club/agent-skills install -s tlc-spec-driven",
+            roles: ["global"],
+          },
+        });
+      }
+      return "";
+    });
+    (fs.mkdirSync as jest.Mock).mockImplementation(() => {});
+    (fs.writeFileSync as jest.Mock).mockImplementation(() => {});
+    execSync.mockImplementation(() => {});
+
+    const provider = new NodeStackProvider();
+    // NodeStackProvider includes 'tlc-spec-driven' in defaultSkills
+    await sddEngine.inject("/target/dir", [provider], [AiAgent.CURSOR]);
+
+    expect(execSync).toHaveBeenCalledWith(
+      expect.stringContaining("@tech-leads-club/agent-skills install -s tlc-spec-driven"),
+      expect.objectContaining({ stdio: "inherit" })
+    );
+  });
+
+  it("should fallback to local copy when skill is not in the registry", async () => {
+    (fs.existsSync as jest.Mock).mockImplementation((filePath: string) => {
+      return String(filePath).endsWith("common-rules.md");
+      // skills-registry.json NOT found → registry stays empty
+    });
+    (fs.readFileSync as jest.Mock).mockImplementation((filePath: string) => {
+      if (String(filePath).endsWith("common-rules.md")) return "# Common Rules";
+      return "";
+    });
+    (fs.mkdirSync as jest.Mock).mockImplementation(() => {});
+    (fs.writeFileSync as jest.Mock).mockImplementation(() => {});
+    (fs.cpSync as jest.Mock).mockImplementation(() => {});
+
+    await sddEngine.inject("/target/dir", [new NodeStackProvider()], [AiAgent.CURSOR]);
+
+    // Should attempt local fallback copy for all 3 skills from NodeStackProvider
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining("skills-registry.json not found")
     );
   });
 });

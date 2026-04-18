@@ -87,7 +87,7 @@ program
     console.log(chalk.cyan(`[Injector] Sideloading AI engineering rules and SDD framework...\n`));
 
     const orchestrator = new WorkspaceService();
-    orchestrator.execute(targetDir, stacks, targetIde, targetAgents, {
+    await orchestrator.execute(targetDir, stacks, targetIde, targetAgents, {
       skipLint: !options.lint,
     });
 

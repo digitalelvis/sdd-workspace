@@ -18,7 +18,7 @@ export class WorkspaceService {
   private readonly ecosystemEngine = new EcosystemEngine();
   private readonly sddEngine = new SDDEngine();
 
-  public execute(
+  public async execute(
     targetDir: string,
     stacks: SupportedStack[],
     ide: string | undefined,
@@ -33,7 +33,7 @@ export class WorkspaceService {
       this.ecosystemEngine.setup(targetDir, stackProviders, ide, options);
 
       // 3. Inject SDD specific routines
-      this.sddEngine.inject(targetDir, stackProviders, agents);
+      await this.sddEngine.inject(targetDir, stackProviders, agents);
       
       // 4. Guarantee tracking while ignoring agent local configs
       this.ensureGitignore(targetDir);
