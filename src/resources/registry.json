@@ -20,13 +20,13 @@
   "nodejs-best-practices": {
     "resource": "skill",
     "mode": "local",
-    "path": "nodejs-best-practices",
+    "path": "skills/nodejs-best-practices",
     "roles": ["backend"]
   },
   "nodejs-backend-patterns": {
     "resource": "skill",
     "mode": "local",
-    "path": "nodejs-backend-patterns",
+    "path": "skills/nodejs-backend-patterns",
     "roles": ["backend"]
   }
 }
