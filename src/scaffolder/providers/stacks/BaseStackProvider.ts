@@ -37,8 +37,8 @@ export abstract class BaseStackProvider implements StackProvider {
 
   private injectConfigTemplates(targetDir: string): void {
     const basePath = __dirname.includes("dist")
-      ? path.join(__dirname, "..", "..", "..", "src", "templates")
-      : path.join(__dirname, "..", "..", "templates");
+      ? path.join(__dirname, "..", "..", "..", "src", "resources")
+      : path.join(__dirname, "..", "..", "resources");
 
     const lintSourceDir = path.join(basePath, "lint", this.stack);
 

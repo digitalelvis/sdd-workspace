@@ -25,8 +25,8 @@ export class SDDEngine {
 
   public async inject(targetDir: string, stackProviders: StackProvider[], selectedAgents: AiAgent[]): Promise<void> {
     const basePath = __dirname.includes("dist")
-      ? path.join(__dirname, "..", "..", "..", "src", "templates")
-      : path.join(__dirname, "..", "..", "templates");
+      ? path.join(__dirname, "..", "..", "..", "src", "resources")
+      : path.join(__dirname, "..", "..", "resources");
 
     // 1. Load Common Rules Content
     let mainRuleContent = "";
@@ -72,7 +72,7 @@ export class SDDEngine {
     console.log(chalk.blue(`\n📥 Provisioning SDD Hub Skills (${Array.from(allSkillsToInject).join(", ")})...`));
     
     // Load Registry
-    const registryPath = path.join(basePath, "skills-registry.json");
+    const registryPath = path.join(basePath, "registry.json");
     let registry: SkillRegistryCatalog = {};
     if (fs.existsSync(registryPath)) {
       registry = JSON.parse(fs.readFileSync(registryPath, "utf-8"));

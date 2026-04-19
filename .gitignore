@@ -14,40 +14,6 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# AI / IDE Agents contexts (we ignore them so they are not tracked as they are personal dev tools, but we WILL track specs/)
-.agents/*
-.claude/
-.cursor/
-.windsurf/
-.vscode/
-
 # Build and testing
 coverage/
 .nyc_output/
-
-# AI WORKSPACES IGNORE
-.agents/*
-.agent/
-.claude/
-.windsurf/
-.cursor/
-.gemini/
-.specs/
-
-
-# ==========================================
-# SDD: AI & Environment Agent Configuration
-# ==========================================
-.cursor/
-.cursorrules
-.windsurf/
-.windsurfrules
-.antigravity/
-.agent/
-.agents/*rules/
-.vscode/
-
-# Keep specs tracked, but rules logic completely separate
-!/.specs
-!/.agents/*skills
-!/.agents/*rules

@@ -79,13 +79,14 @@ describe("SDDEngine - Hybrid Skill Hub Injection", () => {
     // common-rules.md + skills-registry.json both resolve
     (fs.existsSync as jest.Mock).mockImplementation((filePath: string) => {
       const p = String(filePath);
-      return p.endsWith("common-rules.md") || p.endsWith("skills-registry.json");
+      return p.endsWith("common-rules.md") || p.endsWith("registry.json");
     });
     (fs.readFileSync as jest.Mock).mockImplementation((filePath: string) => {
       if (String(filePath).endsWith("common-rules.md")) return "# Common Rules";
-      if (String(filePath).endsWith("skills-registry.json")) {
+      if (String(filePath).endsWith("registry.json")) {
         return JSON.stringify({
           "tlc-spec-driven": {
+            resource: "skill",
             mode: "cli",
             command: "npx -y @tech-leads-club/agent-skills install -s tlc-spec-driven",
             roles: ["global"],

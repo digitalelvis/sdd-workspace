@@ -1,25 +1,30 @@
 {
   "tlc-spec-driven": {
+    "resource": "skill",
     "mode": "cli",
     "command": "npx -y @tech-leads-club/agent-skills install -s tlc-spec-driven",
     "roles": ["global"]
   },
   "shadcn-ui": {
+    "resource": "skill",
     "mode": "cli",
     "command": "npx skills add https://github.com/shadcn/ui --skill shadcn",
     "roles": ["frontend"]
   },
   "supabase-best-practices": {
+    "resource": "skill",
     "mode": "cli",
     "command": "npx skills add https://github.com/supabase/agent-skills",
     "roles": ["backend"]
   },
   "nodejs-best-practices": {
+    "resource": "skill",
     "mode": "local",
     "path": "nodejs-best-practices",
     "roles": ["backend"]
   },
   "nodejs-backend-patterns": {
+    "resource": "skill",
     "mode": "local",
     "path": "nodejs-backend-patterns",
     "roles": ["backend"]

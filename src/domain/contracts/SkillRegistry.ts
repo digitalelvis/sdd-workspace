@@ -1,6 +1,8 @@
 export type SkillStrategyMode = "cli" | "remote" | "local";
+export type ResourceType = "skill";
 
 export interface SkillDefinition {
+  resource: ResourceType;
   mode: SkillStrategyMode;
   roles: string[];
   command?: string; // Utilizado quando mode === 'cli'
