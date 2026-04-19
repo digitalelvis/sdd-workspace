@@ -122,6 +122,7 @@ To register a new skill in the catalog, add an entry to `src/resources/registry.
 ```
 
 Available `mode` values:
+
 - **`cli`** — delegates installation to an external `npx` command (preferred for community packages).
 - **`remote`** — downloads a raw Markdown file via HTTP (requires `url` + `path` fields).
 - **`local`** — copies from `src/resources/skills/` (fallback for bundled assets).
@@ -143,9 +144,8 @@ Never develop directly on `main`.
 
 ## 🤝 Submitting Contributions
 
-1. **Read the Governance rules**: Ensure you have read `.agents/rules/repo-governance.md`
-2. **Fork** the repository
-3. **Branch** off the current active release line (e.g. `git checkout -b feat/add-new-stack`)
-4. **Commit** with conventional commits (`git commit -m "feat: add Go stack provider"`)
-5. **Push** to your fork (`git push origin feat/add-new-stack`)
-6. **Open** a Pull Request targeting the active release branch. Ensure all Jest tests are passing (`npm run test`) prior to submission.
+1. **Fork** the repository
+2. **Branch** off the current active release line (e.g. `git checkout -b feat/add-new-stack`)
+3. **Commit** with conventional commits (`git commit -m "feat: add Go stack provider"`)
+4. **Push** to your fork (`git push origin feat/add-new-stack`)
+5. **Open** a Pull Request targeting the active release branch. Ensure all Jest tests are passing (`npm run test`) prior to submission.

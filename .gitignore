@@ -17,3 +17,19 @@ yarn-error.log*
 # Build and testing
 coverage/
 .nyc_output/
+
+
+# ==========================================
+# SDD: AI & Environment Agent Configuration
+# ==========================================
+.cursor/
+.cursorrules
+.windsurf/
+.windsurfrules
+.antigravity/
+.agent/
+.agents/
+.agents/rules/
+.vscode/
+.claude/
+

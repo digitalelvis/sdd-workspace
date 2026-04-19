@@ -5,9 +5,11 @@
       "name": "tlc-spec-driven",
       "source": "local",
       "contentHash": "69867b0e19be1fb556d2e697f0f18f1de0363d1aa2de9d36754d5b107156357c",
-      "installedAt": "2026-04-18T02:01:50.931Z",
-      "updatedAt": "2026-04-18T02:02:39.711Z",
+      "installedAt": "2026-04-19T13:40:06.144Z",
+      "updatedAt": "2026-04-19T14:24:57.175Z",
       "agents": [
+        "cursor",
+        "claude-code",
         "windsurf"
       ],
       "method": "copy",
