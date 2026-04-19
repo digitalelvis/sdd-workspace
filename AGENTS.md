@@ -20,6 +20,7 @@ When executing tasks within this repository (`ai-sdd-workspace`), you **MUST** a
 This is a Node.js CLI written in **TypeScript**. Its purpose is to scaffold AI workspaces by detecting frameworks (Stacks) and configuring linters/prompt rules for IDEs and Agents.
 - **CLI Core**: Uses `commander` and interactive prompts via `inquirer`.
 - **Design Pattern**: Heavily utilizes **Strategy Pattern** for Providers and **Facade Pattern** for orchestrators (`WorkspaceService`).
+- **Skill Hub**: Skills are orchestrated via `src/resources/registry.json` supporting three delivery modes: `cli` (external npx), `remote` (HTTP fetch), and `local` (bundled assets).
 
 ```bash
 # General CLI testing (No build step required)
@@ -41,6 +42,7 @@ If tasked to add a new framework or IDE, look here:
 - **`src/domain/enums/`**: Declare the strict literal (e.g., `IdeEnvironment.WEBSTORM`).
 - **`src/scaffolder/providers/`**: Create the Strategy class (e.g., `WebStormIdeProvider implements IdeProvider`).
 - **`src/scaffolder/engines/`**: Map the object instantiation in the switch-case Factory (`EcosystemEngine.ts` or `SDDEngine.ts`).
+- **`src/resources/registry.json`**: To add a new Skill to the Hub, declare an entry with `resource`, `mode`, `command`/`url`, and `roles`. The `SDDEngine` reads this catalog at runtime and executes the appropriate strategy.
 
 ## 4. Code Conventions
 - **TypeScript Strict Mode**: No implicit `any`. Interfaces must be maintained.

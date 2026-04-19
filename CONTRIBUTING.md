@@ -46,15 +46,21 @@ graph TD
     WS --> |Setup Rules/Agent Brains| SDD[SDDEngine]
     WS --> |Setup Linters/IDE Host| ECO[EcosystemEngine]
 
-    SDD --> |Injects SDK Rules| Agents[AgentProviders]
+    SDD --> |Reads Catalog| REG["registry.json\n(Skill Hub)"]
+    REG --> |mode: cli| CLI_EXT[External CLI npx]
+    REG --> |mode: remote| HTTP[HTTP Fetch]
+    REG --> |mode: local| LOCAL[Local resources/]
+
+    SDD --> |Injects Rules| Agents[AgentProviders]
     ECO --> |Detects & Modifies| Stacks[StackProviders]
     ECO --> |Generates| IDE[IdeProviders]
 
-    subgraph Agents [IA Agents Strategy]
+    subgraph Agents [AI Agents Strategy]
         A1[Antigravity]
         A2[Cursor]
         A3[Windsurf]
         A4[Kiro]
+        A5[Copilot]
     end
 
     subgraph Stacks [Stack Strategy]
@@ -77,13 +83,19 @@ ai-sdd-workspace/
 ├── src/
 │   ├── analyzer/                 # Framework and Ecosystem Detectors
 │   ├── domain/                   # Enums and Interfaces (IdeEnvironment, SupportedStack)
+│   │   ├── contracts/            # SkillRegistry, IdeProvider, StackProvider...
+│   │   └── enums/                # AiAgent, IdeEnvironment, SupportedStack
 │   ├── scaffolder/               # Core execution layers
 │   │   ├── engines/              # Orchestrators (SDDEngine, EcosystemEngine)
 │   │   └── providers/            # Strategy Mappers (Agents, IDEs, Stacks)
-│   ├── templates/                # Static MD and JSON references pushed to user
+│   ├── resources/                # Static assets bundled with the CLI
+│   │   ├── registry.json         # Hybrid Skill Hub catalog (cli/remote/local)
+│   │   ├── common-rules.md       # Base SDD rules injected into every agent
+│   │   ├── *-rules.md            # Stack-specific rule templates
+│   │   └── skills/               # Local skill fallback assets
 │   └── index.ts                  # CLI Entrypoint (Commander & Inquirer)
 ├── tests/                        # Jest test definitions
-├── .agents/                      # SDD native instructions and offline skills
+├── .agents/                      # SDD native instructions and offline rules
 ├── CHANGELOG.md                  # Auto-generated SemVer history
 └── package.json
 ```
@@ -95,6 +107,24 @@ If you wish to add support for a new Framework (e.g. `Laravel`) or a new IDE (e.
 1. **Declare the Domain**: Add your literal string to the corresponding Enums (`IdeEnvironment.ts`, `SupportedStack.ts` or `AiAgent.ts`).
 2. **Create the Provider Strategy**: Implement the interface (e.g. `WebStormIdeProvider implements IdeProvider`).
 3. **Register in Factory**: Add the map to the respective engine (`EcosystemEngine.ts` or `SDDEngine.ts`).
+
+### ➕ Adding a new Skill to the Hub
+
+To register a new skill in the catalog, add an entry to `src/resources/registry.json`:
+
+```json
+"my-new-skill": {
+  "resource": "skill",
+  "mode": "cli",
+  "command": "npx -y some-publisher/agent-skills install -s my-new-skill",
+  "roles": ["backend"]
+}
+```
+
+Available `mode` values:
+- **`cli`** — delegates installation to an external `npx` command (preferred for community packages).
+- **`remote`** — downloads a raw Markdown file via HTTP (requires `url` + `path` fields).
+- **`local`** — copies from `src/resources/skills/` (fallback for bundled assets).
 
 ## 🔄 Release & Governance Process
 
