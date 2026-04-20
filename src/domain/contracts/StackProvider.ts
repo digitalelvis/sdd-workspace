@@ -2,6 +2,7 @@ import { SupportedStack } from "../enums/SupportedStack";
 
 export interface SetupOptions {
   skipLint: boolean;
+  linterDependencies?: string[];
 }
 
 export interface StackProvider {
@@ -9,17 +10,6 @@ export interface StackProvider {
    * The framework enum that this provider supports.
    */
   readonly stack: SupportedStack;
-
-  /**
-   * Default agent skills assigned for this specific Stack.
-   */
-  readonly defaultSkills: string[];
-
-  /**
-   * The markdown template name that brings baseline rules for this Stack.
-   * e.g., 'node-rules.md'
-   */
-  readonly ruleTemplateFile: string;
 
   /**
    * Sets up the physical ecosystem for the stack (installing linters, formatters, etc.)

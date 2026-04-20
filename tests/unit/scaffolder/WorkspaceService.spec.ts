@@ -21,7 +21,7 @@ describe("Scaffolder - WorkspaceService", () => {
     stderrSpy.mockRestore();
   });
 
-  it("should orchestrate without crashing for a basic node stack using resolved WorkspaceConfig", () => {
+  it("should orchestrate without crashing for a basic node stack using resolved WorkspaceConfig", async () => {
     (fs.existsSync as jest.Mock).mockReturnValue(true);
     (fs.readFileSync as jest.Mock).mockReturnValue("mocked-content");
     (fs.cpSync as jest.Mock).mockImplementation(() => {});
@@ -36,11 +36,11 @@ describe("Scaffolder - WorkspaceService", () => {
       ide: "none",
       lint: false,
       skills: { include: ["tlc-spec-driven"], exclude: [] },
+      linterDependencies: ["eslint"],
+      ruleTemplates: { [SupportedStack.NODEJS]: "node-rules.md" }
     };
 
-    expect(() => {
-      orchestrator.execute("/fake/dir", resolvedConfig);
-    }).not.toThrow();
+    await expect(orchestrator.execute("/fake/dir", resolvedConfig)).resolves.not.toThrow();
   });
 
   it("should expose hasLocalConfig returning false when file does not exist", () => {

@@ -23,5 +23,8 @@ export const CONFIG_VERSION = "0.0.2";
 /** Filename for the local project-level config */
 export const LOCAL_CONFIG_FILENAME = "sdd.config.json";
 
+/** Filename for the global user-level config */
+export const GLOBAL_CONFIG_FILENAME = ".sddrc.json";
+
 /** Path for the global user-level config */
-export const GLOBAL_CONFIG_PATH = `${process.env.HOME ?? "~"}/.sddrc.json`;
+export const GLOBAL_CONFIG_PATH = `${process.env.HOME ?? "~"}/${GLOBAL_CONFIG_FILENAME}`;

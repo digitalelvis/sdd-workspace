@@ -1,8 +1,12 @@
-# AI-SDD Workspace 🚀
+# SDD Workspace 🚀
+
+> [!WARNING]
+> **Project Status: BETA**
+> This project is currently in Beta. You may encounter bugs or breaking changes. We encourage you to report any issues and contribute to its evolution.
 
 **The Intelligent Spec-Driven Development Engine for Modern Engineering Teams.**
 
-AI-SDD Workspace is a high-performance CLI designed to bootstrap and manage "AI-Friendly" ecosystems. It transforms your repository into a structured Spec-Driven Development (SDD) environment by automatically detecting your technology stack and injecting precision-engineered AI instructions, linter rules, and standardized directory structures.
+`@digitalelvis/sdd-workspace` is a high-performance CLI designed to bootstrap and manage "AI-Friendly" ecosystems. It transforms your repository into a structured Spec-Driven Development (SDD) environment by automatically detecting your technology stack and injecting precision-engineered AI instructions, linter rules, and standardized directory structures.
 
 ---
 
@@ -12,86 +16,117 @@ Spec-Driven Development (SDD) is a methodology that prioritizes **structural pla
 
 - **Intelligent Autonomy**: Detects hybrid stacks (e.g., Next.js + Prisma + Tailwind) and harmonizes rules.
 - **Config-First Architecture**: Uses a 4-layer configuration hierarchy for maximum flexibility.
-- **Project DNA Tracking**: Unlike older tools, we treat AI rules as code. We commit instructions to Git to ensure team consistency.
-- **Zero-Friction Adoption**: One command to initialize, one command to keep in sync.
+- **Project DNA Tracking**: We treat AI rules as code. We commit instructions to Git to ensure team consistency.
 
 ---
 
-## 🛠️ The `sdd.config.json` System
+## 🚀 How to Use
 
-The heartbeat of your workspace is the `sdd.config.json` file. It serves as a declarative state of your SDD environment.
+### 1. Global Usage (Recommended)
 
-### 4-Layer Configuration Hierarchy
-Our engine resolves settings using a "Nearest Wins" priority model:
-1. **CLI Flags** (`--ide`, `--agents`) — *Highest Priority*
-2. **Local Config** (`sdd.config.json`)
-3. **Global Config** (`~/.sddrc.json`)
-4. **Built-in Defaults** (CLI internal registry) — *Lowest Priority*
+Install the package globally to access the `sdd` command in any project on your machine. This is the best way to maintain productivity, allowing you to apply your favorite configurations instantly.
 
----
+#### Installation
 
-## 🚀 Getting Started
-
-### Installation
 ```bash
-# Initialize a new or existing project
-npx ai-sdd-workspace init
+npm install -g @digitalelvis/sdd-workspace
 ```
 
-### Main Commands
+#### Initializing an SDD Workspace in a project
 
-| Command | Description |
-| :--- | :--- |
-| `sdd init` | Bootstraps the project, detects stack, and generates `sdd.config.json`. |
-| `sdd apply` | Synchronizes the workspace with the current `sdd.config.json`. |
+```bash
+cd /your-project
+sdd init
+```
+
+#### Configure your Global Preferences
+
+You will be highly productive by configuring your global preferences for skills, stacks, agents, etc. (stored in `~/.sddrc.json`) which will be automatically applied to all new projects.
+
+```bash
+# Set Cursor as the default IDE and your favorite agents
+sdd config set defaults.ide cursor
+sdd config set defaults.agents antigravity,cursor
+```
+
+---
+
+### 2. Usage via NPX (No Installation)
+
+If you wish to use the tool without performing a global installation, you can run it directly via NPX:
+
+```bash
+cd /your-project
+npx @digitalelvis/sdd-workspace init
+```
+
+---
+
+### 3. Local Usage (Development & Contribution)
+
+To test source code changes or contribute to the project:
+
+```bash
+# Clone the repository
+git clone https://github.com/digitalelvis/sdd-workspace.git
+cd ai-sdd-workspace
+npm install
+
+# Build and run locally
+npm run build
+npm run sdd -- init
+```
+
+---
+
+## 🛠️ Main Commands
+
+| Command                       | Description                                                          |
+| :---------------------------- | :----------------------------------------------------------------- |
+| `sdd init`                    | Detects the stack and generates the `sdd.config.json` file.        |
+| `sdd apply`                   | Synchronizes the workspace with current `sdd.config.json` rules.   |
+| `sdd config list`             | Lists all global configurations in `~/.sddrc.json`.                 |
+| `sdd config set <path> <val>` | Sets a global value (e.g., `sdd config set defaults.ide vscode`). |
+| `sdd add --skill <name>`      | (Beta) Adds a specific skill via registry.                         |
 
 ---
 
 ## 📂 Project Structure
 
-After running `sdd init`, your project will receive a premium SDD layout:
+After running `sdd init`, your project will follow the SDD Premium standard:
 
 ```text
 ├── .agents/
-│   ├── rules/          # Behavioral rules for AI Agents (Committed)
-│   └── skills/         # Specialized domain knowledge (Committed)
-├── .specs/             # SDD Specification documents (The Source of Truth)
+│   ├── rules/          # Agent behavioral rules (Committed)
+│   └── skills/         # Specialized technical knowledge (Committed)
+├── .specs/             # Specification documentation (Source of Truth)
 ├── sdd.config.json     # Declarative workspace configuration
-├── .cursorrules        # High-level entry point for Cursor AI
-└── .windsurfrules     # High-level entry point for Windsurf
+├── .cursorrules        # Entry point for Cursor AI
+└── .windsurfrules     # Entry point for Windsurf
 ```
-
-### Git Strategy
-We adhere to professional repo hygiene. 
-- **COMMITTED**: `.agents/rules/`, `.agents/skills/`, `.specs/`, `sdd.config.json`, `.cursorrules`.
-- **IGNORED**: AI agent caches and ephemeral session data (`.cursor/`, `.windsurf/`, `.antigravity/`).
 
 ---
 
 ## 🧩 Supported Ecosystems
 
-### Agents (The Brains)
-- **Antigravity**, **Cursor Engine**, **Windsurf Flow**, **GitHub Copilot**, **Kiro**.
-
-### IDEs (The Hosts)
-- **Cursor**, **Windsurf**, **VS Code**, **WebStorm** (Coming Soon).
-
-### Stacks (The Context)
-- **Next.js**, **React**, **Node.js**, **Python**, **Laravel**, **Vue**, and more.
+- **Agents**: Antigravity, Cursor, Windsurf, Copilot, Kiro.
+- **IDEs**: Cursor, Windsurf, VS Code, WebStorm.
+- **Stacks**: Next.js, React, Node.js, Python, Laravel, Vue, and more.
 
 ---
 
-## 🤝 Contributing
+## 🤝 Contribution
 
-We build with SOLID principles and DDD-inspired architecture.
-1. **Standard Testing**: `npm run test`
-2. **Standard Formatting**: `npm run format`
-3. **Architecture**: Read [CONTRIBUTING.md](./CONTRIBUTING.md) for strategy & provider details.
+Refer to the [CONTRIBUTING.md](./CONTRIBUTING.md) guide for architecture details and code standards.
 
 ---
 
-## 📜 Credits
-Inspired by and adapted from the [Tech Leads Club Agent Skills](https://github.com/tech-leads-club/agent-skills).
+## 📞 Support & Contact
+
+- **Elvis Lopes**
+- **Email**: [elvislopesdigital@gmail.com](mailto:elvislopesdigital@gmail.com)
+- **WhatsApp**: [+55 (48) 99626-6204](https://wa.me/5548996266204)
 
 ---
-*Built with ❤️ for the next generation of AI-Native Engineers.*
+
+_Built with ❤️ for the next generation of AI-Native Engineers._

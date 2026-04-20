@@ -1,9 +1,9 @@
 ---
-title: Contributing to AI-SDD Workspace
+title: Contributing to SDD Workspace (@digitalelvis/sdd-workspace)
 description: Guidelines and architectural documentation for contributing to the sdd CLI ecosystem.
 ---
 
-First of all, thank you for taking the time to dedicate your engineering skills (or agentic capabilities) to contribute to `sdd`! 🎉
+First of all, thank you for taking the time to dedicate your engineering skills (or agentic capabilities) to contribute to `@digitalelvis/sdd-workspace`! 🎉
 
 > **Note**: This document provides all the necessary information to get your local development environment set up, understand our Engine architecture via diagrams, and safely submit your Pull Requests under our governance structure.
 
@@ -16,10 +16,11 @@ First of all, thank you for taking the time to dedicate your engineering skills 
 ## 🚀 Setup
 
 ```bash
-git clone https://github.com/digitalelvis/ai-sdd-workspace.git
+git clone https://github.com/digitalelvis/sdd-workspace.git
 cd ai-sdd-workspace
 npm install
 npm run build
+# The binary can be tested locally using: npm run sdd -- init
 ```
 
 ## 💻 Development Commands
@@ -71,15 +72,16 @@ We document major architectural changes using **Architecture Decision Records**.
 ai-sdd-workspace/
 ├── src/
 │   ├── analyzer/                 # Framework and Ecosystem Detectors
-│   ├── config/                   # NEW: Hierarchical Config & Resolution logic
+│   ├── cli/                      # NEW: Modular CLI layer (Commands & Actions)
+│   │   ├── commands/             # Individual command factories
+│   │   └── cli-handler.ts        # Global Commander orchestration
+│   ├── config/                   # Hierarchical Config & Global Management
+│   │   ├── GlobalConfigManager.ts # Business logic for ~/.sddrc.json
+│   │   └── ConfigResolver.ts     # 4-layer merge engine
 │   ├── domain/                   # Enums and Interfaces
-│   │   ├── contracts/            # SkillRegistry, IdeProvider, StackProvider...
-│   │   └── enums/                # AiAgent, IdeEnvironment, SupportedStack
 │   ├── scaffolder/               # Core execution layers
-│   │   ├── engines/              # Orchestrators (SDDEngine, EcosystemEngine)
-│   │   └── providers/            # Strategy Mappers (Agents, IDEs, Stacks)
 │   ├── resources/                # Static assets bundled with the CLI
-│   └── index.ts                  # CLI Entrypoint (sdd init / sdd apply)
+│   └── index.ts                  # Minimal Entrypoint
 ├── docs/
 │   └── adr/                      # Architecture Decision Records
 ├── tests/                        # Jest test definitions

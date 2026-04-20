@@ -1,32 +1,64 @@
 {
-  "tlc-spec-driven": {
-    "resource": "skill",
-    "mode": "cli",
-    "command": "npx -y @tech-leads-club/agent-skills install -s tlc-spec-driven",
-    "roles": ["global"]
+  "skills": {
+    "tlc-spec-driven": {
+      "resource": "skill",
+      "mode": "cli",
+      "command": "npx -y @tech-leads-club/agent-skills install -s tlc-spec-driven",
+      "roles": ["global"]
+    },
+    "shadcn-ui": {
+      "resource": "skill",
+      "mode": "cli",
+      "command": "npx skills add https://github.com/shadcn/ui --skill shadcn",
+      "roles": ["frontend"]
+    },
+    "supabase-best-practices": {
+      "resource": "skill",
+      "mode": "cli",
+      "command": "npx skills add https://github.com/supabase/agent-skills",
+      "roles": ["backend"]
+    },
+    "nodejs-best-practices": {
+      "resource": "skill",
+      "mode": "local",
+      "path": "skills/nodejs-best-practices",
+      "roles": ["backend"]
+    },
+    "nodejs-backend-patterns": {
+      "resource": "skill",
+      "mode": "local",
+      "path": "skills/nodejs-backend-patterns",
+      "roles": ["backend"]
+    },
+    "react-best-practices": {
+      "resource": "skill",
+      "mode": "local",
+      "path": "skills/react-best-practices",
+      "roles": ["frontend"]
+    }
   },
-  "shadcn-ui": {
-    "resource": "skill",
-    "mode": "cli",
-    "command": "npx skills add https://github.com/shadcn/ui --skill shadcn",
-    "roles": ["frontend"]
-  },
-  "supabase-best-practices": {
-    "resource": "skill",
-    "mode": "cli",
-    "command": "npx skills add https://github.com/supabase/agent-skills",
-    "roles": ["backend"]
-  },
-  "nodejs-best-practices": {
-    "resource": "skill",
-    "mode": "local",
-    "path": "skills/nodejs-best-practices",
-    "roles": ["backend"]
-  },
-  "nodejs-backend-patterns": {
-    "resource": "skill",
-    "mode": "local",
-    "path": "skills/nodejs-backend-patterns",
-    "roles": ["backend"]
+  "stacks": {
+    "nodejs": {
+      "defaultSkills": ["tlc-spec-driven", "nodejs-best-practices"],
+      "ruleTemplateFile": "node-rules.md",
+      "linterDependencies": ["eslint@8.56.0", "prettier@3.1.0"]
+    },
+    "react": {
+      "defaultSkills": ["tlc-spec-driven", "react-best-practices", "react-ui-patterns"],
+      "ruleTemplateFile": "react-rules.md",
+      "linterDependencies": [
+        "eslint@8.56.0",
+        "prettier@3.1.0",
+        "eslint-plugin-react",
+        "eslint-plugin-react-hooks",
+        "@typescript-eslint/parser",
+        "@typescript-eslint/eslint-plugin"
+      ]
+    },
+    "nextjs": {
+      "defaultSkills": ["tlc-spec-driven", "nextjs-best-practices"],
+      "ruleTemplateFile": "next-rules.md",
+      "linterDependencies": ["eslint@8.56.0", "prettier@3.1.0", "eslint-config-next"]
+    }
   }
 }

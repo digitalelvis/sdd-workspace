@@ -10,4 +10,13 @@ export interface SkillDefinition {
   path?: string;    // Destino interno em ambos 'remote' e 'local', ou source no 'local'
 }
 
-export type SkillRegistryCatalog = Record<string, SkillDefinition>;
+export interface StackDefinition {
+  defaultSkills: string[];
+  ruleTemplateFile: string;
+  linterDependencies: string[];
+}
+
+export interface SkillRegistryCatalog {
+  skills: Record<string, SkillDefinition>;
+  stacks: Record<string, StackDefinition>;
+}

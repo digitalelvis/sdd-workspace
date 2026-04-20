@@ -30,16 +30,17 @@ export class WorkspaceService {
       const agents: AiAgent[] = resolved.agents ?? [];
       const ide = resolved.ide === "none" ? undefined : resolved.ide;
       const skipLint = !(resolved.lint ?? true);
+      const linterDependencies = resolved.linterDependencies ?? [];
 
       // 1. Resolve Stack Providers
       const stackProviders = this.resolveStackProviders(stacks);
 
       // 2. Provision physical ecosystem (Lint, local config folders)
-      this.ecosystemEngine.setup(targetDir, stackProviders, ide, { skipLint });
+      this.ecosystemEngine.setup(targetDir, stackProviders, ide, { skipLint, linterDependencies });
 
       // 3. Inject SDD rules and skills (using merged skill list from config)
       const skillsToInject = resolved.skills?.include ?? [];
-      await this.sddEngine.inject(targetDir, stackProviders, agents, skillsToInject);
+      await this.sddEngine.inject(targetDir, stackProviders, agents, skillsToInject, resolved.ruleTemplates);
 
       // 4. Ensure gitignore has correct AI workspace rules
       this.ensureGitignore(targetDir);

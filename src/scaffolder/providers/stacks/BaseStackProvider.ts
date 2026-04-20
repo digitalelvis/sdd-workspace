@@ -10,10 +10,6 @@ import { SupportedStack } from "../../../domain/enums/SupportedStack";
 
 export abstract class BaseStackProvider implements StackProvider {
   abstract readonly stack: SupportedStack;
-  abstract readonly defaultSkills: string[];
-  abstract readonly ruleTemplateFile: string;
-
-  protected abstract getLinterDependencies(): string[];
 
   public setupEcosystem(targetDir: string, options: SetupOptions): void {
     if (options.skipLint) {
@@ -32,7 +28,7 @@ export abstract class BaseStackProvider implements StackProvider {
     );
     this.injectConfigTemplates(targetDir);
     this.updatePackageJson(targetDir);
-    this.installDependencies(targetDir);
+    this.installDependencies(targetDir, options.linterDependencies || []);
   }
 
   private injectConfigTemplates(targetDir: string): void {
@@ -87,8 +83,7 @@ export abstract class BaseStackProvider implements StackProvider {
     }
   }
 
-  private installDependencies(targetDir: string): void {
-    const deps = this.getLinterDependencies();
+  private installDependencies(targetDir: string, deps: string[]): void {
     if (deps.length > 0) {
       console.log(
         chalk.cyan(

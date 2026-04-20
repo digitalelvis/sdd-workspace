@@ -76,15 +76,10 @@ export async function initAction(options: InitOptions): Promise<void> {
   const stacks = detectFramework(targetDir);
   console.log(chalk.yellow(`\n[Analyzer] Detected Stacks: ${chalk.bold(stacks.join(", "))}`));
 
-  const stackProviders = orchestrator.resolveStackProviders(stacks);
-  const stackSkills = [...new Set(stackProviders.flatMap(p => p.defaultSkills))];
-
   const resolved = resolver.resolve(
     { agents: interactiveAgents, ide: interactiveIde, lint: options.lint, stacks },
-    stackSkills,
     targetDir,
   );
-  resolved.stacks = stacks;
 
   // 4. Execute injection
   console.log(chalk.cyan(`[Injector] Sideloading AI engineering rules and SDD framework...\n`));

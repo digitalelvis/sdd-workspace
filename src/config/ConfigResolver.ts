@@ -1,14 +1,12 @@
 import fs from "fs";
 import path from "path";
 import { WorkspaceConfig, GlobalUserConfig, LocalWorkspaceConfig } from "./ConfigSchema";
-import { BUILT_IN_DEFAULTS, GLOBAL_CONFIG_PATH, LOCAL_CONFIG_FILENAME } from "./defaults";
+import { BUILT_IN_DEFAULTS, LOCAL_CONFIG_FILENAME } from "./defaults";
 import { AiAgent } from "../domain/enums/AiAgent";
 import { SupportedStack } from "../domain/enums/SupportedStack";
+import { GlobalConfigManager } from "./GlobalConfigManager";
+import { RegistryLoader } from "../resources/RegistryLoader";
 
-/**
- * Input from the CLI layer (flags passed by the user at runtime).
- * This is the highest-priority config layer.
- */
 export interface CliFlags {
   agents?: AiAgent[];
   ide?: string;
@@ -18,46 +16,49 @@ export interface CliFlags {
 
 /**
  * ConfigResolver — Merges 4 layers into a single WorkspaceConfig.
- *
- * Priority (highest to lowest):
- *   CLI Flags → Local sdd.config.json → Global ~/.sddrc.json → Built-in Defaults
- *
- * Skills are merged additively:
- *   final = (stackDefaults ∪ global.skills.add ∪ local.skills.include) - local.skills.exclude
+ * Priority: CLI Flags → Local sdd.config.json → Global ~/.sddrc.json → Built-in Registry
  */
 export class ConfigResolver {
-  /**
-   * Resolve the final merged WorkspaceConfig.
-   *
-   * @param cliFlags     - Flags passed directly via Commander (highest priority)
-   * @param stackSkills  - Default skills from detected StackProviders (built-in layer)
-   * @param projectDir   - The target directory to search for sdd.config.json
-   */
-  public resolve(cliFlags: CliFlags, stackSkills: string[], projectDir: string): WorkspaceConfig {
-    // Layer 1: Built-in defaults
+  public resolve(cliFlags: CliFlags, projectDir: string): WorkspaceConfig {
+    const registry = RegistryLoader.load();
+    const global = this.loadGlobalConfig();
+    const local = this.loadLocalConfig(projectDir);
+
+    // Initial state from built-in defaults (Agents/IDE/Lint)
     const base: WorkspaceConfig = {
       agents: [...BUILT_IN_DEFAULTS.agents],
       ide: BUILT_IN_DEFAULTS.ide,
       lint: BUILT_IN_DEFAULTS.lint,
-      skills: { include: [...stackSkills], exclude: [], add: [] },
+      stacks: cliFlags.stacks && cliFlags.stacks.length > 0 ? cliFlags.stacks : (local?.stacks || []),
+      skills: { include: [], exclude: [], add: [] },
+      linterDependencies: [],
+      ruleTemplates: {},
     };
 
-    // Layer 2: Global config (~/.sddrc.json)
-    const global = this.loadGlobalConfig();
+    // 1. Resolve Stack Defaults (Registry + Global Overrides)
+    const { skills: stackSkills, tools: stackTools, templates } = this.resolveStackBase(
+      base.stacks || [],
+      registry,
+      global
+    );
+    
+    base.linterDependencies = stackTools;
+    base.ruleTemplates = templates;
+
+    // 2. Apply Global Config (General settings)
     if (global) {
       this.applyGlobalConfig(base, global);
     }
 
-    // Layer 3: Local config (./sdd.config.json)
-    const local = this.loadLocalConfig(projectDir);
+    // 3. Apply Local Config
     if (local) {
       this.applyLocalConfig(base, local);
     }
 
-    // Layer 4: CLI flags (highest priority — always wins)
+    // 4. Apply CLI Flags
     this.applyCliFlags(base, cliFlags);
 
-    // Final skill merge: exclude takes precedence over everything
+    // 5. Final Skill Merge
     base.skills = this.mergeSkills(
       stackSkills,
       global?.skills?.add ?? [],
@@ -70,38 +71,66 @@ export class ConfigResolver {
   }
 
   /**
-   * Generate a sdd.config.json content object from a resolved config.
-   * This is written to disk after a successful `sdd init`.
+   * Resolves the base skills, tools, and templates for the detected stacks.
+   * Merges Built-in Registry defaults with Global ~/.sddrc.json stack overrides.
    */
+  private resolveStackBase(
+    stacks: SupportedStack[],
+    registry: any,
+    global: GlobalUserConfig | null
+  ) {
+    const skills = new Set<string>();
+    const tools = new Set<string>();
+    const templates: Record<string, string> = {};
+
+    for (const stackName of stacks) {
+      const def = registry.stacks[stackName];
+      if (def) {
+        def.defaultSkills.forEach((s: string) => skills.add(s));
+        def.linterDependencies.forEach((t: string) => tools.add(t));
+        templates[stackName] = def.ruleTemplateFile;
+      }
+
+      // Apply incremental global stack overrides
+      const override = global?.stacks?.[stackName];
+      if (override) {
+        override.addSkills?.forEach(s => skills.add(s));
+        override.addTools?.forEach(t => tools.add(t));
+      }
+    }
+
+    return { 
+      skills: Array.from(skills), 
+      tools: Array.from(tools), 
+      templates 
+    };
+  }
+
   public generateLocalConfigContent(
     resolved: WorkspaceConfig,
     updatedAt: string = new Date().toISOString(),
   ): LocalWorkspaceConfig {
     return {
       version: "0.0.2",
-      stacks: resolved.stacks ?? [],
-      agents: resolved.agents ?? [],
+      stacks: resolved.stacks || [],
+      agents: resolved.agents || [],
       ide: resolved.ide,
       lint: resolved.lint ?? true,
       skills: {
-        include: resolved.skills?.include ?? [],
-        exclude: resolved.skills?.exclude ?? [],
+        include: resolved.skills?.include || [],
+        exclude: resolved.skills?.exclude || [],
       },
       updatedAt,
     };
   }
 
-  // ─── Loaders ──────────────────────────────────────────────────────────────
-
   public loadGlobalConfig(): GlobalUserConfig | null {
     try {
-      if (fs.existsSync(GLOBAL_CONFIG_PATH)) {
-        return JSON.parse(fs.readFileSync(GLOBAL_CONFIG_PATH, "utf-8")) as GlobalUserConfig;
-      }
+      const manager = new GlobalConfigManager();
+      return manager.load();
     } catch {
-      // Non-fatal — global config is optional
+      return null;
     }
-    return null;
   }
 
   public loadLocalConfig(projectDir: string): LocalWorkspaceConfig | null {
@@ -111,12 +140,10 @@ export class ConfigResolver {
         return JSON.parse(fs.readFileSync(configPath, "utf-8")) as LocalWorkspaceConfig;
       }
     } catch {
-      // Non-fatal — local config is optional on first init
+      return null;
     }
     return null;
   }
-
-  // ─── Layer applicators ────────────────────────────────────────────────────
 
   private applyGlobalConfig(base: WorkspaceConfig, global: GlobalUserConfig): void {
     if (global.defaults?.agents?.length) base.agents = global.defaults.agents;
@@ -138,17 +165,6 @@ export class ConfigResolver {
     if (flags.stacks?.length) base.stacks = flags.stacks;
   }
 
-  // ─── Skill merge ──────────────────────────────────────────────────────────
-
-  /**
-   * Merge skills from all layers with additive logic and exclude support.
-   *
-   * stackDefaults  — from StackProvider.defaultSkills (built-in)
-   * globalAdd      — from ~/.sddrc.json skills.add
-   * localInclude   — from sdd.config.json skills.include (full override of defaults)
-   * localAdd       — from sdd.config.json skills.add (additive on top of defaults)
-   * localExclude   — from sdd.config.json skills.exclude (removed from final set)
-   */
   private mergeSkills(
     stackDefaults: string[],
     globalAdd: string[],

@@ -1,15 +1,26 @@
 {
-  "name": "ai-sdd-workspace",
+  "name": "@digitalelvis/sdd-workspace",
   "version": "0.0.1",
-  "description": "AI - SDD Enginee for Workspaces",
+  "description": "SDD Enginee for Workspaces",
+  "author": {
+    "name": "Elvis Lopes",
+    "email": "elvislopesdigital@gmail.com",
+    "url": "https://wa.me/5548996266204"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/digitalelvis/sdd-workspace.git"
+  },
   "main": "dist/index.js",
   "bin": {
-    "sdd": "./dist/index.js"
+    "sdd": "./dist/index.js",
+    "sdd-workspace": "./dist/index.js"
   },
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "ts-node src/index.ts",
+    "sdd": "ts-node src/index.ts",
     "lint": "eslint 'src/**/*.{js,ts}'",
     "format": "prettier --write 'src/**/*.{js,ts,json,md}'",
     "test": "jest",
@@ -28,7 +39,6 @@
     "generator",
     "spec-kit"
   ],
-  "author": "",
   "license": "MIT",
   "dependencies": {
     "chalk": "^4.1.2",

@@ -5,7 +5,7 @@ import { execSync } from "child_process";
 import { StackProvider } from "../../domain/contracts/StackProvider";
 import { AgentProvider } from "../../domain/contracts/AgentProvider";
 import { AiAgent } from "../../domain/enums/AiAgent";
-import { SkillRegistryCatalog, SkillDefinition } from "../../domain/contracts/SkillRegistry";
+import { RegistryLoader } from "../../resources/RegistryLoader";
 
 // Agent Providers mapping
 import { CursorAgentProvider } from "../providers/agents/CursorAgentProvider";
@@ -27,7 +27,8 @@ export class SDDEngine {
     targetDir: string,
     stackProviders: StackProvider[],
     selectedAgents: AiAgent[],
-    externalSkills?: string[],
+    skillsToInject: string[],
+    ruleTemplates?: Record<string, string>
   ): Promise<void> {
     const basePath = __dirname.includes("dist")
       ? path.join(__dirname, "..", "..", "..", "src", "resources")
@@ -42,27 +43,20 @@ export class SDDEngine {
       throw new Error("common-rules.md not found");
     }
 
-    // Combine rules content from all detected stacks and gather total skills
+    // 2. Combine Rules Content from Stacks
     let combinedStackRuleContent = "";
-    const providerSkills = new Set<string>();
-
-    for (const provider of stackProviders) {
-      const stackRulesPath = path.join(basePath, provider.ruleTemplateFile);
-      if (fs.existsSync(stackRulesPath)) {
-        combinedStackRuleContent += fs.readFileSync(stackRulesPath, "utf-8") + "\n\n";
-      } else {
-        combinedStackRuleContent += `## 2. ${provider.stack.toUpperCase()} AI Environment Setup\nFollow standard SDD best practices.\n\n`;
+    if (ruleTemplates) {
+      for (const [stackName, templateFile] of Object.entries(ruleTemplates)) {
+        const stackRulesPath = path.join(basePath, templateFile);
+        if (fs.existsSync(stackRulesPath)) {
+          combinedStackRuleContent += fs.readFileSync(stackRulesPath, "utf-8") + "\n\n";
+        } else {
+          combinedStackRuleContent += `## 2. ${stackName.toUpperCase()} AI Environment Setup\nFollow standard SDD best practices.\n\n`;
+        }
       }
-      provider.defaultSkills.forEach(skill => providerSkills.add(skill));
     }
 
-    // If externalSkills are provided (from ConfigResolver), they take precedence.
-    // Otherwise fall back to the stack provider defaults.
-    const allSkillsToInject: Set<string> = externalSkills && externalSkills.length > 0
-      ? new Set(externalSkills)
-      : providerSkills;
-
-    // 2. Map Agent Providers and Inject Rules
+    // 3. Map Agent Providers and Inject Rules
     const targetProviders = this.availableAgents.filter(p => selectedAgents.includes(p.agent));
 
     if (targetProviders.length > 0) {
@@ -77,29 +71,21 @@ export class SDDEngine {
       console.log(chalk.yellow("\n⚠️ No AI Agents selected or matched. Generated base skills but skipped specific rule bindings."));
     }
 
-    // 3. Centralized Sideload using Hybrid Skill Hub Registry
-    console.log(chalk.blue(`\n📥 Provisioning SDD Hub Skills (${Array.from(allSkillsToInject).join(", ")})...`));
+    // 4. Centralized Sideload using Registry
+    console.log(chalk.blue(`\n📥 Provisioning SDD Hub Skills (${skillsToInject.join(", ")})...`));
     
-    // Load Registry
-    const registryPath = path.join(basePath, "registry.json");
-    let registry: SkillRegistryCatalog = {};
-    if (fs.existsSync(registryPath)) {
-      registry = JSON.parse(fs.readFileSync(registryPath, "utf-8"));
-    } else {
-      console.warn(chalk.yellow("⚠️ skills-registry.json not found. Falling back to simple local mode."));
-    }
-
+    const registry = RegistryLoader.load();
     const agentsSkillsDestDir = path.join(targetDir, ".agents", "skills");
+    
     if (!fs.existsSync(agentsSkillsDestDir)) {
       fs.mkdirSync(agentsSkillsDestDir, { recursive: true });
     }
 
-    for (const skillName of allSkillsToInject) {
-      const skillDef = registry[skillName];
+    for (const skillName of skillsToInject) {
+      const skillDef = registry.skills[skillName];
       console.log(chalk.cyan(`  ↳ Processing [${skillName}]...`));
 
       if (!skillDef) {
-        // Fallback Local if not mapped in JSON
         this.processLocalSkill(skillName, basePath, agentsSkillsDestDir);
         continue;
       }
@@ -110,8 +96,6 @@ export class SDDEngine {
             if (skillDef.command) {
               console.log(chalk.gray(`    Executing external installer: ${skillDef.command}`));
               execSync(skillDef.command, { stdio: "inherit", cwd: targetDir });
-            } else {
-              console.warn(chalk.yellow(`    ⚠️ CLI command missing for skill ${skillName}`));
             }
             break;
 
@@ -125,8 +109,6 @@ export class SDDEngine {
               fs.mkdirSync(path.dirname(targetPath), { recursive: true });
               fs.writeFileSync(targetPath, content, "utf-8");
               console.log(chalk.green(`    ✔️ Downloaded to ${skillDef.path}`));
-            } else {
-               console.warn(chalk.yellow(`    ⚠️ Remote URL or path missing for skill ${skillName}`));
             }
             break;
 
@@ -134,9 +116,6 @@ export class SDDEngine {
             const source = skillDef.path || `skills/${skillName}`;
             this.processLocalSkill(skillName, path.join(basePath, source), agentsSkillsDestDir, true);
             break;
-            
-          default:
-            console.warn(chalk.yellow(`    ⚠️ Unknown skill mode for ${skillName}`));
         }
       } catch (err) {
         console.error(chalk.red(`    ❌ Failed to provision skill ${skillName}`), err);

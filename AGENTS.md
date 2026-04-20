@@ -7,7 +7,7 @@ description: Required instructions for any LLM interacting with this repository.
 > **Guidance for AI Coding Agents when working with code in this repository.**
 
 Welcome, AI Agent (Antigravity, Cursor, Windsurf, Copilot, etc).
-When executing tasks within this repository (`ai-sdd-workspace`), you **MUST** adhere to the following behavioral and structural directives.
+When executing tasks within this repository (`@digitalelvis/sdd-workspace`), you **MUST** adhere to the following behavioral and structural directives.
 
 ## 1. Behavioral Defaults
 - **Environment Context First**: Before accepting complex tasks, silently verify if the `.agents/skills`, `.specs/`, and `sdd.config.json` exist. If they do NOT exist, you **MUST** suggest to the user to bootstrap the workspace by running `npm run start -- init` before continuing.

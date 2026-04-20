@@ -24,13 +24,10 @@ export async function applyAction(): Promise<void> {
   console.log(chalk.cyan(`  Found ${LOCAL_CONFIG_FILENAME} — resolving configuration...`));
 
   // 1. Resolve with local config as the primary source
-  const stackSkills = localConfig.skills?.include ?? [];
   const resolved = resolver.resolve(
     { agents: localConfig.agents, ide: localConfig.ide, lint: localConfig.lint, stacks: localConfig.stacks },
-    stackSkills,
     targetDir,
   );
-  resolved.stacks = localConfig.stacks ?? [];
 
   // 2. Execute re-injection
   console.log(chalk.cyan(`[Injector] Re-injecting AI engineering rules and SDD framework...\n`));
