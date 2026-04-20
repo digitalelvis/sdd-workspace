@@ -1,0 +1,46 @@
+import { AiAgent } from "../domain/enums/AiAgent";
+import { SupportedStack } from "../domain/enums/SupportedStack";
+
+export interface SkillsConfig {
+  include?: string[];
+  exclude?: string[];
+  add?: string[];
+}
+
+export interface StackOverride {
+  addSkills?: string[];
+  addTools?: string[];
+}
+
+/**
+ * The canonical WorkspaceConfig contract.
+ */
+export interface WorkspaceConfig {
+  version?: string;
+  stacks?: SupportedStack[];
+  agents?: AiAgent[];
+  ide?: string;
+  lint?: boolean;
+  skills?: SkillsConfig;
+  
+  /** 
+   * Internal resolved field for ecosystem tools.
+   * Not typically persisted in sdd.config.json, but used during runtime.
+   */
+  linterDependencies?: string[];
+  
+  /** Mapping of rule templates for detected stacks */
+  ruleTemplates?: Record<string, string>;
+}
+
+export interface LocalWorkspaceConfig extends WorkspaceConfig {
+  updatedAt?: string;
+}
+
+export interface GlobalUserConfig {
+  defaults?: Pick<WorkspaceConfig, "agents" | "ide" | "lint">;
+  skills?: Pick<SkillsConfig, "add">;
+  
+  /** Stack-specific global overrides */
+  stacks?: Record<string, StackOverride>;
+}

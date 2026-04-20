@@ -7,7 +7,7 @@ import { IdeEnvironment } from "../../../domain/enums/IdeEnvironment";
 export class AntigravityIdeProvider implements IdeProvider {
   readonly ide = IdeEnvironment.ANTIGRAVITY;
 
-  setupIdeConfig(targetDir: string, options?: any): void {
+  setupIdeConfig(targetDir: string, _options?: any): void {
     const configDir = path.join(targetDir, ".antigravity");
     if (!fs.existsSync(configDir)) {
       fs.mkdirSync(configDir, { recursive: true });

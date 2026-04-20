@@ -7,7 +7,7 @@ import { IdeEnvironment } from "../../../domain/enums/IdeEnvironment";
 export class VSCodeIdeProvider implements IdeProvider {
   readonly ide = IdeEnvironment.VSCODE;
 
-  setupIdeConfig(targetDir: string, options?: any): void {
+  setupIdeConfig(targetDir: string, _options?: any): void {
     const configDir = path.join(targetDir, ".vscode");
     if (!fs.existsSync(configDir)) {
       fs.mkdirSync(configDir, { recursive: true });

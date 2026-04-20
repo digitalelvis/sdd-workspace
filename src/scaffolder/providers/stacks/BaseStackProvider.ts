@@ -10,10 +10,6 @@ import { SupportedStack } from "../../../domain/enums/SupportedStack";
 
 export abstract class BaseStackProvider implements StackProvider {
   abstract readonly stack: SupportedStack;
-  abstract readonly defaultSkills: string[];
-  abstract readonly ruleTemplateFile: string;
-
-  protected abstract getLinterDependencies(): string[];
 
   public setupEcosystem(targetDir: string, options: SetupOptions): void {
     if (options.skipLint) {
@@ -32,13 +28,13 @@ export abstract class BaseStackProvider implements StackProvider {
     );
     this.injectConfigTemplates(targetDir);
     this.updatePackageJson(targetDir);
-    this.installDependencies(targetDir);
+    this.installDependencies(targetDir, options.linterDependencies || []);
   }
 
   private injectConfigTemplates(targetDir: string): void {
     const basePath = __dirname.includes("dist")
       ? path.join(__dirname, "..", "..", "..", "src", "resources")
-      : path.join(__dirname, "..", "..", "resources");
+      : path.join(__dirname, "..", "..", "..", "resources");
 
     const lintSourceDir = path.join(basePath, "lint", this.stack);
 
@@ -77,7 +73,7 @@ export abstract class BaseStackProvider implements StackProvider {
           fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2), "utf8");
           console.log(
             chalk.green(
-              `✔️  Updated package.json with \"lint\" and \"format\" scripts.`,
+              `✔️  Updated package.json with "lint" and "format" scripts.`,
             ),
           );
         }
@@ -87,8 +83,7 @@ export abstract class BaseStackProvider implements StackProvider {
     }
   }
 
-  private installDependencies(targetDir: string): void {
-    const deps = this.getLinterDependencies();
+  private installDependencies(targetDir: string, deps: string[]): void {
     if (deps.length > 0) {
       console.log(
         chalk.cyan(
