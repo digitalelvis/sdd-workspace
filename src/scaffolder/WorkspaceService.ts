@@ -3,7 +3,9 @@ import path from "path";
 import chalk from "chalk";
 import { SupportedStack } from "../domain/enums/SupportedStack";
 import { AiAgent } from "../domain/enums/AiAgent";
-import { SetupOptions, StackProvider } from "../domain/contracts/StackProvider";
+import { StackProvider } from "../domain/contracts/StackProvider";
+import { WorkspaceConfig } from "../config/ConfigSchema";
+import { LOCAL_CONFIG_FILENAME } from "../config/defaults";
 
 // Stacks
 import { NodeStackProvider } from "./providers/stacks/NodeStackProvider";
@@ -18,41 +20,60 @@ export class WorkspaceService {
   private readonly ecosystemEngine = new EcosystemEngine();
   private readonly sddEngine = new SDDEngine();
 
-  public async execute(
-    targetDir: string,
-    stacks: SupportedStack[],
-    ide: string | undefined,
-    agents: AiAgent[],
-    options: SetupOptions,
-  ) {
+  /**
+   * Execute the full workspace provisioning pipeline.
+   * Accepts a fully resolved WorkspaceConfig from the ConfigResolver.
+   */
+  public async execute(targetDir: string, resolved: WorkspaceConfig): Promise<void> {
     try {
-      // 1. Resolve Providers Factory
+      const stacks = resolved.stacks ?? [];
+      const agents: AiAgent[] = resolved.agents ?? [];
+      const ide = resolved.ide === "none" ? undefined : resolved.ide;
+      const skipLint = !(resolved.lint ?? true);
+
+      // 1. Resolve Stack Providers
       const stackProviders = this.resolveStackProviders(stacks);
 
       // 2. Provision physical ecosystem (Lint, local config folders)
-      this.ecosystemEngine.setup(targetDir, stackProviders, ide, options);
+      this.ecosystemEngine.setup(targetDir, stackProviders, ide, { skipLint });
 
-      // 3. Inject SDD specific routines
-      await this.sddEngine.inject(targetDir, stackProviders, agents);
-      
-      // 4. Guarantee tracking while ignoring agent local configs
+      // 3. Inject SDD rules and skills (using merged skill list from config)
+      const skillsToInject = resolved.skills?.include ?? [];
+      await this.sddEngine.inject(targetDir, stackProviders, agents, skillsToInject);
+
+      // 4. Ensure gitignore has correct AI workspace rules
       this.ensureGitignore(targetDir);
 
-      // Initialize root .specs folder
+      // 5. Initialize root .specs folder
       const rootSpecsDir = path.join(targetDir, ".specs");
       if (!fs.existsSync(rootSpecsDir)) {
         fs.mkdirSync(rootSpecsDir, { recursive: true });
         console.log(chalk.green("✔️  Initialized workspace root specifications directory at .specs/"));
       }
     } catch (error) {
-      console.error(
-        chalk.red("\n❌ Critical Exception during Injection:"),
-        error,
-      );
+      console.error(chalk.red("\n❌ Critical Exception during Injection:"), error);
     }
   }
 
-  private resolveStackProviders(stacks: SupportedStack[]): StackProvider[] {
+  /**
+   * Check if a sdd.config.json already exists in the target directory.
+   */
+  public hasLocalConfig(targetDir: string): boolean {
+    return fs.existsSync(path.join(targetDir, LOCAL_CONFIG_FILENAME));
+  }
+
+  /**
+   * Write the resolved config to sdd.config.json in the target directory.
+   */
+  public writeLocalConfig(targetDir: string, config: object): void {
+    const configPath = path.join(targetDir, LOCAL_CONFIG_FILENAME);
+    fs.writeFileSync(configPath, JSON.stringify(config, null, 2) + "\n", "utf-8");
+    console.log(chalk.green(`✔️  Workspace configuration saved to ${LOCAL_CONFIG_FILENAME}`));
+  }
+
+  // ─── Private helpers ─────────────────────────────────────────────────────
+
+  public resolveStackProviders(stacks: SupportedStack[]): StackProvider[] {
     const providers: StackProvider[] = [];
     for (const stack of stacks) {
       switch (stack) {
@@ -68,7 +89,6 @@ export class WorkspaceService {
         case SupportedStack.LARAVEL:
         case SupportedStack.VUE:
         default:
-          // Fallback basic stack config when unknown
           providers.push(new NodeStackProvider());
           break;
       }
@@ -78,33 +98,35 @@ export class WorkspaceService {
 
   private ensureGitignore(targetDir: string): void {
     const gitignorePath = path.join(targetDir, ".gitignore");
+    const marker = "# SDD: AI & Environment Agent Configuration";
     const aiIgnoreBlock = `
 # ==========================================
-# SDD: AI & Environment Agent Configuration
+${marker}
 # ==========================================
+# Ignore agent cache/session state (ephemeral, may contain sensitive paths)
 .cursor/
-.cursorrules
 .windsurf/
-.windsurfrules
+.vscode/
+.claude/
 .antigravity/
 .agent/
-.agents/rules/
-.vscode/
+.agents/
 
-# Keep specs tracked, but rules logic completely separate
-!/.specs
-!/.agents/skills
+# Keep these tracked (project DNA):
+!/.agents/rules/
+!/.agents/skills/
+!/.specs/
 `;
 
     if (fs.existsSync(gitignorePath)) {
-      const gitignoreContent = fs.readFileSync(gitignorePath, "utf-8");
-      if (!gitignoreContent.includes("SDD: AI & Environment Agent Configuration")) {
-        fs.appendFileSync(gitignorePath, `\n${aiIgnoreBlock}`);
-        console.log(chalk.green("✔️  Appended AI workspace ignoring rules to .gitignore."));
+      const content = fs.readFileSync(gitignorePath, "utf-8");
+      if (!content.includes(marker)) {
+        fs.appendFileSync(gitignorePath, aiIgnoreBlock);
+        console.log(chalk.green("✔️  Appended AI workspace rules to .gitignore."));
       }
     } else {
       fs.writeFileSync(gitignorePath, aiIgnoreBlock.trim() + "\n");
-      console.log(chalk.green("✔️  Created .gitignore with AI rules."));
+      console.log(chalk.green("✔️  Created .gitignore with AI workspace rules."));
     }
   }
 }

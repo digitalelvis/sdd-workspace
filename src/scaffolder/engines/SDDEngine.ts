@@ -23,7 +23,12 @@ export class SDDEngine {
     new KiroAgentProvider()
   ];
 
-  public async inject(targetDir: string, stackProviders: StackProvider[], selectedAgents: AiAgent[]): Promise<void> {
+  public async inject(
+    targetDir: string,
+    stackProviders: StackProvider[],
+    selectedAgents: AiAgent[],
+    externalSkills?: string[],
+  ): Promise<void> {
     const basePath = __dirname.includes("dist")
       ? path.join(__dirname, "..", "..", "..", "src", "resources")
       : path.join(__dirname, "..", "..", "resources");
@@ -39,19 +44,23 @@ export class SDDEngine {
 
     // Combine rules content from all detected stacks and gather total skills
     let combinedStackRuleContent = "";
-    const allSkillsToInject = new Set<string>();
+    const providerSkills = new Set<string>();
 
     for (const provider of stackProviders) {
       const stackRulesPath = path.join(basePath, provider.ruleTemplateFile);
-
       if (fs.existsSync(stackRulesPath)) {
         combinedStackRuleContent += fs.readFileSync(stackRulesPath, "utf-8") + "\n\n";
       } else {
         combinedStackRuleContent += `## 2. ${provider.stack.toUpperCase()} AI Environment Setup\nFollow standard SDD best practices.\n\n`;
       }
-
-      provider.defaultSkills.forEach(skill => allSkillsToInject.add(skill));
+      provider.defaultSkills.forEach(skill => providerSkills.add(skill));
     }
+
+    // If externalSkills are provided (from ConfigResolver), they take precedence.
+    // Otherwise fall back to the stack provider defaults.
+    const allSkillsToInject: Set<string> = externalSkills && externalSkills.length > 0
+      ? new Set(externalSkills)
+      : providerSkills;
 
     // 2. Map Agent Providers and Inject Rules
     const targetProviders = this.availableAgents.filter(p => selectedAgents.includes(p.agent));

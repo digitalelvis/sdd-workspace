@@ -1,6 +1,8 @@
 import fs from "fs";
 import { WorkspaceService } from "../../../src/scaffolder/WorkspaceService";
 import { SupportedStack } from "../../../src/domain/enums/SupportedStack";
+import { AiAgent } from "../../../src/domain/enums/AiAgent";
+import { WorkspaceConfig } from "../../../src/config/ConfigSchema";
 
 jest.mock("fs");
 
@@ -19,19 +21,37 @@ describe("Scaffolder - WorkspaceService", () => {
     stderrSpy.mockRestore();
   });
 
-  it("should orchestrate without crashing for a basic node stack", () => {
+  it("should orchestrate without crashing for a basic node stack using resolved WorkspaceConfig", () => {
     (fs.existsSync as jest.Mock).mockReturnValue(true);
     (fs.readFileSync as jest.Mock).mockReturnValue("mocked-content");
-    
-    // We mock cpSync and writeFileSync to prevent real disk operations
     (fs.cpSync as jest.Mock).mockImplementation(() => {});
     (fs.writeFileSync as jest.Mock).mockImplementation(() => {});
+    (fs.mkdirSync as jest.Mock).mockImplementation(() => {});
 
     const orchestrator = new WorkspaceService();
-    
+
+    const resolvedConfig: WorkspaceConfig = {
+      stacks: [SupportedStack.NODEJS],
+      agents: [AiAgent.CURSOR],
+      ide: "none",
+      lint: false,
+      skills: { include: ["tlc-spec-driven"], exclude: [] },
+    };
+
     expect(() => {
-      orchestrator.execute("/fake/dir", [SupportedStack.NODEJS], undefined, [], { skipLint: true });
+      orchestrator.execute("/fake/dir", resolvedConfig);
     }).not.toThrow();
   });
 
+  it("should expose hasLocalConfig returning false when file does not exist", () => {
+    (fs.existsSync as jest.Mock).mockReturnValue(false);
+    const orchestrator = new WorkspaceService();
+    expect(orchestrator.hasLocalConfig("/fake/dir")).toBe(false);
+  });
+
+  it("should expose hasLocalConfig returning true when sdd.config.json exists", () => {
+    (fs.existsSync as jest.Mock).mockReturnValue(true);
+    const orchestrator = new WorkspaceService();
+    expect(orchestrator.hasLocalConfig("/fake/dir")).toBe(true);
+  });
 });
