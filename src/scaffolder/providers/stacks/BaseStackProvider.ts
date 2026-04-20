@@ -73,7 +73,7 @@ export abstract class BaseStackProvider implements StackProvider {
           fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2), "utf8");
           console.log(
             chalk.green(
-              `✔️  Updated package.json with \"lint\" and \"format\" scripts.`,
+              `✔️  Updated package.json with "lint" and "format" scripts.`,
             ),
           );
         }

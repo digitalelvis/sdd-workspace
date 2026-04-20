@@ -112,10 +112,11 @@ export class SDDEngine {
             }
             break;
 
-          case "local":
+          case "local": {
             const source = skillDef.path || `skills/${skillName}`;
             this.processLocalSkill(skillName, path.join(basePath, source), agentsSkillsDestDir, true);
             break;
+          }
         }
       } catch (err) {
         console.error(chalk.red(`    ❌ Failed to provision skill ${skillName}`), err);
