@@ -11,14 +11,17 @@ import { LOCAL_CONFIG_FILENAME } from "../config/defaults";
 import { NodeStackProvider } from "./providers/stacks/NodeStackProvider";
 import { ReactStackProvider } from "./providers/stacks/ReactStackProvider";
 import { NextJsStackProvider } from "./providers/stacks/NextJsStackProvider";
+import { AIStackProvider } from "./providers/stacks/AIStackProvider";
 
 // Engines
 import { SDDEngine } from "./engines/SDDEngine";
 import { EcosystemEngine } from "./engines/EcosystemEngine";
+import { CICDEngine } from "./engines/CICDEngine";
 
 export class WorkspaceService {
   private readonly ecosystemEngine = new EcosystemEngine();
   private readonly sddEngine = new SDDEngine();
+  private readonly cicdEngine = new CICDEngine();
 
   /**
    * Execute the full workspace provisioning pipeline.
@@ -40,7 +43,15 @@ export class WorkspaceService {
 
       // 3. Inject SDD rules and skills (using merged skill list from config)
       const skillsToInject = resolved.skills?.include ?? [];
-      await this.sddEngine.inject(targetDir, stackProviders, agents, skillsToInject, resolved.ruleTemplates);
+      await this.sddEngine.inject(
+        targetDir,
+        stackProviders,
+        agents,
+        skillsToInject,
+        resolved.ruleTemplates,
+        resolved.database,
+        resolved.security
+      );
 
       // 4. Ensure gitignore has correct AI workspace rules
       this.ensureGitignore(targetDir);
@@ -51,6 +62,12 @@ export class WorkspaceService {
         fs.mkdirSync(rootSpecsDir, { recursive: true });
         console.log(chalk.green("✔️  Initialized workspace root specifications directory at .specs/"));
       }
+
+      // 6. Provision CI/CD
+      const basePath = __dirname.includes("dist")
+        ? path.join(__dirname, "..", "..", "src", "resources")
+        : path.join(__dirname, "..", "resources");
+      this.cicdEngine.setup(targetDir, basePath, stacks);
     } catch (error) {
       console.error(chalk.red("\n❌ Critical Exception during Injection:"), error);
     }
@@ -80,6 +97,9 @@ export class WorkspaceService {
       switch (stack) {
         case SupportedStack.NEXTJS:
           providers.push(new NextJsStackProvider());
+          break;
+        case SupportedStack.AI_GENERIC:
+          providers.push(new AIStackProvider());
           break;
         case SupportedStack.REACT:
           providers.push(new ReactStackProvider());

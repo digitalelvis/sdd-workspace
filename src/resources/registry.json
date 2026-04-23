@@ -35,6 +35,78 @@
       "mode": "local",
       "path": "skills/react-best-practices",
       "roles": ["frontend"]
+    },
+    "architect-review": {
+      "resource": "skill",
+      "mode": "cli",
+      "command": "npx -y @digitalelvis/agent-skills install -s architect-review",
+      "roles": ["global"]
+    },
+    "clean-code": {
+      "resource": "skill",
+      "mode": "cli",
+      "command": "npx -y @digitalelvis/agent-skills install -s clean-code",
+      "roles": ["global"]
+    },
+    "git-pushing": {
+      "resource": "skill",
+      "mode": "cli",
+      "command": "npx -y @digitalelvis/agent-skills install -s git-pushing",
+      "roles": ["global"]
+    },
+    "postgres-best-practices": {
+      "resource": "skill",
+      "mode": "local",
+      "path": "skills/postgres-best-practices",
+      "roles": ["backend"]
+    },
+    "nosql-expert": {
+      "resource": "skill",
+      "mode": "local",
+      "path": "skills/nosql-expert",
+      "roles": ["backend"]
+    },
+    "composition-patterns": {
+      "resource": "skill",
+      "mode": "git",
+      "url": "https://github.com/vercel-labs/agent-skills",
+      "subpath": "skills/composition-patterns",
+      "roles": ["frontend"]
+    },
+    "deploy-to-vercel": {
+      "resource": "skill",
+      "mode": "git",
+      "url": "https://github.com/vercel-labs/agent-skills",
+      "subpath": "skills/deploy-to-vercel",
+      "roles": ["global"]
+    },
+    "react-native-skills": {
+      "resource": "skill",
+      "mode": "git",
+      "url": "https://github.com/vercel-labs/agent-skills",
+      "subpath": "skills/react-native-skills",
+      "roles": ["frontend"]
+    },
+    "react-view-transitions": {
+      "resource": "skill",
+      "mode": "git",
+      "url": "https://github.com/vercel-labs/agent-skills",
+      "subpath": "skills/react-view-transitions",
+      "roles": ["frontend"]
+    },
+    "vercel-cli-with-tokens": {
+      "resource": "skill",
+      "mode": "git",
+      "url": "https://github.com/vercel-labs/agent-skills",
+      "subpath": "skills/vercel-cli-with-tokens",
+      "roles": ["global"]
+    },
+    "web-design-guidelines": {
+      "resource": "skill",
+      "mode": "git",
+      "url": "https://github.com/vercel-labs/agent-skills",
+      "subpath": "skills/web-design-guidelines",
+      "roles": ["frontend"]
     }
   },
   "stacks": {
@@ -56,9 +128,14 @@
       ]
     },
     "nextjs": {
-      "defaultSkills": ["tlc-spec-driven", "nextjs-best-practices"],
+      "defaultSkills": ["tlc-spec-driven", "nextjs-best-practices", "deploy-to-vercel", "web-design-guidelines"],
       "ruleTemplateFile": "next-rules.md",
       "linterDependencies": ["eslint@8.56.0", "prettier@3.1.0", "eslint-config-next"]
+    },
+    "ai-generic": {
+      "defaultSkills": ["tlc-spec-driven", "clean-code", "architect-review"],
+      "ruleTemplateFile": "common-rules.md",
+      "linterDependencies": []
     }
   }
 }

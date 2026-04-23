@@ -1,13 +1,15 @@
-export type SkillStrategyMode = "cli" | "remote" | "local";
+export type SkillStrategyMode = "cli" | "remote" | "local" | "git";
 export type ResourceType = "skill";
 
 export interface SkillDefinition {
   resource: ResourceType;
   mode: SkillStrategyMode;
   roles: string[];
-  command?: string; // Utilizado quando mode === 'cli'
-  url?: string;     // Utilizado quando mode === 'remote'
-  path?: string;    // Destino interno em ambos 'remote' e 'local', ou source no 'local'
+  command?: string;   // Used when mode === 'cli'
+  url?: string;       // Used when mode === 'remote' or 'git'
+  path?: string;      // Internal destination or source for 'local' mode
+  subpath?: string;   // For 'git' mode, the directory within the repository
+  branch?: string;    // For 'git' mode, the branch/tag/ref
 }
 
 export interface StackDefinition {

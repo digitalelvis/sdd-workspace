@@ -6,4 +6,5 @@ export enum SupportedStack {
   PHP = "php",
   LARAVEL = "laravel",
   VUE = "vue",
+  AI_GENERIC = "ai-generic",
 }

@@ -1,0 +1,18 @@
+# AI Engineering Rules
+
+## 1. Master Orchestrator: Spec-Driven Development (SDD)
+You MUST ALWAYS use the Tech Lead's Club SDD workflow as your central orchestrator. 
+For ANY new feature, issue, project initialization, or architecture documentation, your **first step** is to consult the SDD skill:
+- **Path:** `.agents/skills/tlc-spec-driven/SKILL.md`
+
+Do NOT start writing code or making architectural changes without first reading the SDD skill and creating/updating the necessary specifications (e.g., `spec.md`, `tasks.md`, `design.md`) as mandated by the skill's sizing rules.
+
+
+## 2. Framework Guidelines: Node.js
+
+You are operating within a Node.js backend environment. Before implementing APIs, database connections, or background jobs, you MUST consult the stack-specific skills injected into the workspace:
+
+- **Node.js Best Practices:** Read and adhere to `.agents/skills/nodejs-best-practices/SKILL.md`.
+- **Node.js Backend Patterns:** For architecture and patterns, adhere to `.agents/skills/nodejs-backend-patterns/SKILL.md`.
+
+Always combine these stack rules with the overarching SDD methodology.

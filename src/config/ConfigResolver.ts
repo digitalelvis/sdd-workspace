@@ -4,6 +4,7 @@ import { WorkspaceConfig, GlobalUserConfig, LocalWorkspaceConfig } from "./Confi
 import { BUILT_IN_DEFAULTS, LOCAL_CONFIG_FILENAME } from "./defaults";
 import { AiAgent } from "../domain/enums/AiAgent";
 import { SupportedStack } from "../domain/enums/SupportedStack";
+import { SupportedDatabase } from "../domain/enums/SupportedDatabase";
 import { GlobalConfigManager } from "./GlobalConfigManager";
 import { RegistryLoader } from "../resources/RegistryLoader";
 
@@ -12,6 +13,8 @@ export interface CliFlags {
   ide?: string;
   lint?: boolean;
   stacks?: SupportedStack[];
+  database?: SupportedDatabase[];
+  security?: string[];
 }
 
 /**
@@ -30,6 +33,8 @@ export class ConfigResolver {
       ide: BUILT_IN_DEFAULTS.ide,
       lint: BUILT_IN_DEFAULTS.lint,
       stacks: cliFlags.stacks && cliFlags.stacks.length > 0 ? cliFlags.stacks : (local?.stacks || []),
+      database: cliFlags.database && cliFlags.database.length > 0 ? cliFlags.database : (local?.database || []),
+      security: cliFlags.security && cliFlags.security.length > 0 ? cliFlags.security : (local?.security || []),
       skills: { include: [], exclude: [], add: [] },
       linterDependencies: [],
       ruleTemplates: {},
@@ -116,6 +121,8 @@ export class ConfigResolver {
       agents: resolved.agents || [],
       ide: resolved.ide,
       lint: resolved.lint ?? true,
+      database: resolved.database || [],
+      security: resolved.security || [],
       skills: {
         include: resolved.skills?.include || [],
         exclude: resolved.skills?.exclude || [],
@@ -156,6 +163,8 @@ export class ConfigResolver {
     if (local.ide) base.ide = local.ide;
     if (local.lint !== undefined) base.lint = local.lint;
     if (local.stacks?.length) base.stacks = local.stacks;
+    if (local.database?.length) base.database = local.database;
+    if (local.security?.length) base.security = local.security;
   }
 
   private applyCliFlags(base: WorkspaceConfig, flags: CliFlags): void {
@@ -163,6 +172,8 @@ export class ConfigResolver {
     if (flags.ide) base.ide = flags.ide;
     if (flags.lint !== undefined) base.lint = flags.lint;
     if (flags.stacks?.length) base.stacks = flags.stacks;
+    if (flags.database?.length) base.database = flags.database;
+    if (flags.security?.length) base.security = flags.security;
   }
 
   private mergeSkills(

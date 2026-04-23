@@ -1,15 +1,19 @@
 import chalk from "chalk";
 import inquirer from "inquirer";
 import { detectFramework } from "../../../analyzer/framework-detector";
+import { detectDatabase } from "../../../analyzer/DatabaseDetector";
+import { detectSecurity } from "../../../analyzer/SecurityDetector";
 import { WorkspaceService } from "../../../scaffolder/WorkspaceService";
 import { ConfigResolver } from "../../../config/ConfigResolver";
 import { AiAgent } from "../../../domain/enums/AiAgent";
 import { IdeEnvironment } from "../../../domain/enums/IdeEnvironment";
+import { SupportedDatabase } from "../../../domain/enums/SupportedDatabase";
+import { SupportedStack } from "../../../domain/enums/SupportedStack";
 
 export interface InitOptions {
   ide?: string;
   agents?: string;
-  lint: boolean;
+  lint?: boolean;
 }
 
 /**
@@ -36,12 +40,20 @@ export async function initAction(options: InitOptions): Promise<void> {
       }) as AiAgent[];
   }
 
-  // 2. Interactive prompt only when no CLI flags provided
+  // 2. Initial Analyzers (Internal)
+  const detectedStacks = detectFramework(targetDir);
+  const detectedDbs = detectDatabase(targetDir);
+  const detectedSecurity = detectSecurity(targetDir);
+
+  // 3. Interactive prompt logic
   let interactiveIde: string | undefined = options.ide;
   let interactiveAgents: AiAgent[] = cliAgents;
+  let interactiveDbs: SupportedDatabase[] = detectedDbs;
+  let interactiveStacks: SupportedStack[] = detectedStacks;
 
+  // Prompt for confirmInit and basic settings if not enough CLI flags
   if (!options.ide && cliAgents.length === 0) {
-    const answers = await inquirer.prompt([
+    const basicAnswers = await inquirer.prompt([
       {
         type: "confirm",
         name: "confirmInit",
@@ -61,23 +73,58 @@ export async function initAction(options: InitOptions): Promise<void> {
         message: "Which AI agents are you using? (They will receive SDD rules)",
         choices: Object.values(AiAgent),
         when: (ans) => ans.confirmInit,
-      },
+      }
     ]);
 
-    if (!answers.confirmInit) {
+    if (!basicAnswers.confirmInit) {
       console.log(chalk.red("\nInitialization aborted."));
       process.exit(0);
     }
-    interactiveIde = answers.ide === "none" ? undefined : answers.ide;
-    interactiveAgents = answers.selectedAgents ?? [];
+    interactiveIde = basicAnswers.ide === "none" ? undefined : basicAnswers.ide;
+    interactiveAgents = basicAnswers.selectedAgents ?? [];
   }
 
-  // 3. Detect stacks and resolve config hierarchy
-  const stacks = detectFramework(targetDir);
-  console.log(chalk.yellow(`\n[Analyzer] Detected Stacks: ${chalk.bold(stacks.join(", "))}`));
+  // 4. Handle Stacks (Fallback if none detected)
+  if (interactiveStacks.length === 0) {
+    console.log(chalk.yellow(`\n[Analyzer] No stacks detected in this directory.`));
+    const stackAnswer = await inquirer.prompt([
+      {
+        type: "list",
+        name: "stack",
+        message: "How would you like to proceed with the stack configuration?",
+        choices: [
+          { name: "I will create it with AI, I don't know the stack", value: SupportedStack.AI_GENERIC },
+          new inquirer.Separator(),
+          ...Object.values(SupportedStack)
+            .filter(s => s !== SupportedStack.AI_GENERIC)
+            .map(s => ({ name: s, value: s }))
+        ]
+      }
+    ]);
+    interactiveStacks = [stackAnswer.stack as SupportedStack];
+  } else {
+    console.log(chalk.yellow(`\n[Analyzer] Detected Stacks: ${chalk.bold(interactiveStacks.join(", "))}`));
+  }
+
+  // 5. Handle Databases (Only prompt if none detected)
+  if (interactiveDbs.length === 0) {
+    const dbAnswer = await inquirer.prompt([
+      {
+        type: "checkbox",
+        name: "selectedDbs",
+        message: "No database detected. Select the databases you plan to use:",
+        choices: [
+          { name: "None", value: SupportedDatabase.NONE },
+          ...Object.values(SupportedDatabase).filter(d => d !== SupportedDatabase.NONE)
+        ],
+        default: [SupportedDatabase.NONE]
+      }
+    ]);
+    interactiveDbs = dbAnswer.selectedDbs.includes(SupportedDatabase.NONE) ? [] : dbAnswer.selectedDbs;
+  }
 
   const resolved = resolver.resolve(
-    { agents: interactiveAgents, ide: interactiveIde, lint: options.lint, stacks },
+    { agents: interactiveAgents, ide: interactiveIde, lint: options.lint, stacks: interactiveStacks, database: interactiveDbs, security: detectedSecurity },
     targetDir,
   );
 

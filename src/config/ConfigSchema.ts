@@ -1,5 +1,6 @@
 import { AiAgent } from "../domain/enums/AiAgent";
 import { SupportedStack } from "../domain/enums/SupportedStack";
+import { SupportedDatabase } from "../domain/enums/SupportedDatabase";
 
 export interface SkillsConfig {
   include?: string[];
@@ -21,6 +22,8 @@ export interface WorkspaceConfig {
   agents?: AiAgent[];
   ide?: string;
   lint?: boolean;
+  database?: SupportedDatabase[];
+  security?: string[];
   skills?: SkillsConfig;
   
   /** 

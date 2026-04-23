@@ -12,6 +12,9 @@ jest.mock("../../../src/resources/RegistryLoader");
 
 const { execSync } = require("child_process");
 
+// Mock global fetch
+global.fetch = jest.fn();
+
 describe("SDDEngine - Registry-Driven Injection", () => {
   let sddEngine: SDDEngine;
   let logSpy: jest.SpyInstance;
@@ -23,6 +26,31 @@ describe("SDDEngine - Registry-Driven Injection", () => {
         resource: "skill",
         mode: "cli",
         command: "npx install-skill",
+        roles: ["global"]
+      },
+      "local-skill": {
+        resource: "skill",
+        mode: "local",
+        path: "skills/local-skill",
+        roles: ["global"]
+      },
+      "remote-skill": {
+        resource: "skill",
+        mode: "remote",
+        url: "https://example.com/skill.md",
+        roles: ["global"]
+      },
+      "git-github-skill": {
+        resource: "skill",
+        mode: "git",
+        url: "https://github.com/owner/repo",
+        subpath: "skills/git-skill",
+        roles: ["global"]
+      },
+      "git-other-skill": {
+        resource: "skill",
+        mode: "git",
+        url: "https://gitlab.com/owner/repo",
         roles: ["global"]
       }
     },
@@ -80,5 +108,103 @@ describe("SDDEngine - Registry-Driven Injection", () => {
       "npx install-skill",
       expect.objectContaining({ stdio: "inherit" })
     );
+  });
+
+  it("should provision 'local' mode skills by copying directory", async () => {
+    (fs.existsSync as jest.Mock).mockImplementation((filePath: string) => {
+      if (String(filePath).endsWith("common-rules.md")) return true;
+      if (String(filePath).includes("skills/local-skill")) return true;
+      return false;
+    });
+    (fs.readFileSync as jest.Mock).mockReturnValue("# Content");
+    (fs.mkdirSync as jest.Mock).mockImplementation(() => {});
+    (fs.cpSync as jest.Mock) = jest.fn();
+
+    await sddEngine.inject("/target/dir", [], [AiAgent.CURSOR], ["local-skill"]);
+
+    expect(fs.cpSync).toHaveBeenCalledWith(
+      expect.stringContaining("skills/local-skill"),
+      expect.stringContaining(".agents/skills/local-skill"),
+      expect.objectContaining({ recursive: true })
+    );
+  });
+
+  it("should provision 'remote' mode skills by fetching URL", async () => {
+    (fs.existsSync as jest.Mock).mockImplementation((filePath: string) => {
+      return String(filePath).endsWith("common-rules.md");
+    });
+    (fs.readFileSync as jest.Mock).mockReturnValue("# Content");
+    (fs.mkdirSync as jest.Mock).mockImplementation(() => {});
+    (fs.writeFileSync as jest.Mock).mockImplementation(() => {});
+
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      text: jest.fn().mockResolvedValue("# Remote Skill Content"),
+    });
+
+    await sddEngine.inject("/target/dir", [], [AiAgent.CURSOR], ["remote-skill"]);
+
+    expect(global.fetch).toHaveBeenCalledWith("https://example.com/skill.md");
+    expect(fs.writeFileSync).toHaveBeenCalledWith(
+      expect.stringContaining(".agents/skills/remote-skill/SKILL.md"),
+      "# Remote Skill Content",
+      "utf-8"
+    );
+  });
+
+  it("should provision 'git' mode skills via GitHub API", async () => {
+    (fs.existsSync as jest.Mock).mockImplementation((filePath: string) => {
+      return String(filePath).endsWith("common-rules.md");
+    });
+    (fs.readFileSync as jest.Mock).mockReturnValue("# Content");
+    (fs.mkdirSync as jest.Mock).mockImplementation(() => {});
+    (fs.writeFileSync as jest.Mock).mockImplementation(() => {});
+
+    // Mock GitHub API responses
+    (global.fetch as jest.Mock)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue([
+          { name: "SKILL.md", type: "file", download_url: "https://raw.../SKILL.md" }
+        ]),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        text: jest.fn().mockResolvedValue("# GitHub Skill Content"),
+      });
+
+    await sddEngine.inject("/target/dir", [], [AiAgent.CURSOR], ["git-github-skill"]);
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      expect.stringContaining("api.github.com/repos/owner/repo/contents/skills/git-skill"),
+      expect.any(Object)
+    );
+    expect(fs.writeFileSync).toHaveBeenCalledWith(
+      expect.stringContaining(".agents/skills/git-github-skill/SKILL.md"),
+      "# GitHub Skill Content",
+      "utf-8"
+    );
+  });
+
+  it("should provision 'git' mode skills via clone for non-GitHub URLs", async () => {
+    (fs.existsSync as jest.Mock).mockImplementation((filePath: string) => {
+      if (String(filePath).endsWith("common-rules.md")) return true;
+      if (String(filePath).includes(".sdd-temp-skill")) return true;
+      return false;
+    });
+    (fs.readFileSync as jest.Mock).mockReturnValue("# Content");
+    (fs.mkdirSync as jest.Mock).mockImplementation(() => {});
+    (fs.cpSync as jest.Mock) = jest.fn();
+    (fs.rmSync as jest.Mock) = jest.fn();
+    execSync.mockImplementation(() => {});
+
+    await sddEngine.inject("/target/dir", [], [AiAgent.CURSOR], ["git-other-skill"]);
+
+    expect(execSync).toHaveBeenCalledWith(
+      expect.stringContaining("git clone --depth 1 https://gitlab.com/owner/repo"),
+      expect.any(Object)
+    );
+    expect(fs.cpSync).toHaveBeenCalled();
+    expect(fs.rmSync).toHaveBeenCalled();
   });
 });
