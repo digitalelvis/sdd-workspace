@@ -18,13 +18,15 @@
 - [x] **Dynamic Skill Loading**: Support for more complex skill provisioning modes.
 - [x] **CI/CD for Versioning**: Github Actions configured for version branches (`v*`).
 - [x] **Registry Structuring**: Split monolithic `registry.json` into modular files.
-- [] **Add command**: Add command to add new skills and rules.
+- [x] **Advanced Rule Composition**: Support for modular rules and multi-rule injection.
+- [ ] **Add command**: Add command to add new skills and rules.
 
 ## Phase 3: Expansion
 
+- [ ] Implement `add` command for incremental skill/rule installation.
 - [ ] Add support for more IDEs (WebStorm, IntelliJ).
 - [ ] Enhance Analyzer for monorepo detection.
-- [ ] Implement `apply` command for incremental updates.
+- [ ] Implement `apply` command for global workspace updates.
 - [ ] Add more "Skills" to the default registry (e.g., Python-specific, Cloud-native).
 
 ## Phase 4: Ecosystem
@@ -35,5 +37,6 @@
 
 ## Status Tracking
 
-- **Current Version**: 0.1.1
-- **Next Milestone**: Enhanced Analyzer & Monorepo support.
+- **Current Version**: 0.1.2
+- **Last Achievement**: Modular Rules Engine & SDDEngine Refactor.
+- **Next Milestone**: `add` command & Multi-provider support.
