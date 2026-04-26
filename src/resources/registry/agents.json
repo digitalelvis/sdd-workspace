@@ -1,0 +1,22 @@
+{
+  "cursor": {
+    "ruleFile": ".cursorrules",
+    "strategy": "reference"
+  },
+  "windsurf": {
+    "ruleFile": ".windsurfrules",
+    "strategy": "reference"
+  },
+  "antigravity": {
+    "ruleFile": ".antigravityrules",
+    "strategy": "reference"
+  },
+  "copilot": {
+    "ruleFile": ".copilotrules",
+    "strategy": "reference"
+  },
+  "kiro": {
+    "ruleFile": ".kirorules",
+    "strategy": "reference"
+  }
+}

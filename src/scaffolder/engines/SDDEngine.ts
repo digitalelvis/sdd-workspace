@@ -7,22 +7,7 @@ import { AgentProvider } from "../../domain/contracts/AgentProvider";
 import { AiAgent } from "../../domain/enums/AiAgent";
 import { RegistryLoader } from "../../resources/RegistryLoader";
 
-// Agent Providers mapping
-import { CursorAgentProvider } from "../providers/agents/CursorAgentProvider";
-import { WindsurfAgentProvider } from "../providers/agents/WindsurfAgentProvider";
-import { AntigravityAgentProvider } from "../providers/agents/AntigravityAgentProvider";
-import { CopilotAgentProvider } from "../providers/agents/CopilotAgentProvider";
-import { KiroAgentProvider } from "../providers/agents/KiroAgentProvider";
-
 export class SDDEngine {
-  private readonly availableAgents: AgentProvider[] = [
-    new CursorAgentProvider(),
-    new WindsurfAgentProvider(),
-    new AntigravityAgentProvider(),
-    new CopilotAgentProvider(),
-    new KiroAgentProvider()
-  ];
-
   public async inject(
     targetDir: string,
     stackProviders: StackProvider[],
@@ -35,6 +20,8 @@ export class SDDEngine {
     const basePath = __dirname.includes("dist")
       ? path.join(__dirname, "..", "..", "..", "src", "resources")
       : path.join(__dirname, "..", "..", "resources");
+
+    const registry = RegistryLoader.load();
 
     // 1. Load Common Rules Content
     let mainRuleContent = "";
@@ -58,15 +45,43 @@ export class SDDEngine {
       }
     }
 
-    // 3. Map Agent Providers and Inject Rules
-    const targetProviders = this.availableAgents.filter(p => selectedAgents.includes(p.agent));
+    const fullRuleContent = `${mainRuleContent}\n\n${combinedStackRuleContent.trim()}`;
 
-    if (targetProviders.length > 0) {
-      for (const provider of targetProviders) {
+    // 3. Centralize Rules (SSOT)
+    const rulesDir = path.join(targetDir, ".agents", "rules");
+    if (!fs.existsSync(rulesDir)) {
+      fs.mkdirSync(rulesDir, { recursive: true });
+    }
+    const mainRulesFilePath = path.join(rulesDir, "main.md");
+    fs.writeFileSync(mainRulesFilePath, fullRuleContent);
+    console.log(chalk.green(`✔️  Centralized AI rules at .agents/rules/main.md`));
+
+    // 4. Map Agent Configs from Registry
+    if (selectedAgents.length > 0) {
+      for (const agent of selectedAgents) {
+        const agentDef = registry.agents[agent];
+        if (!agentDef) {
+          console.warn(chalk.yellow(`⚠️ No registry definition found for agent: ${agent}`));
+          continue;
+        }
+
+        const agentConfigPath = path.join(targetDir, agentDef.ruleFile);
+        
         try {
-          provider.injectRules(targetDir, mainRuleContent, combinedStackRuleContent.trim());
-        } catch (err) {
-           console.warn(chalk.yellow(`⚠️ Could not inject rules for ${provider.agent}`));
+          if (agentDef.strategy === "reference") {
+            const referenceContent = `# Spec-Driven Development Rules\n\nTo ensure consistency and quality, please strictly adhere to the project-wide rules defined in:\n\n- [main.md](file://./.agents/rules/main.md)\n`;
+            fs.writeFileSync(agentConfigPath, referenceContent);
+            console.log(chalk.green(`  ↳ Created ${agentDef.ruleFile} referencing centralized rules.`));
+          } else if (agentDef.strategy === "symlink") {
+            if (fs.existsSync(agentConfigPath)) fs.unlinkSync(agentConfigPath);
+            fs.symlinkSync(".agents/rules/main.md", agentConfigPath);
+            console.log(chalk.green(`  ↳ Created symlink ${agentDef.ruleFile} -> .agents/rules/main.md`));
+          } else {
+            fs.writeFileSync(agentConfigPath, fullRuleContent);
+            console.log(chalk.green(`  ↳ Injected full rules into ${agentDef.ruleFile}`));
+          }
+        } catch (err: any) {
+          console.warn(chalk.yellow(`⚠️ Could not configure ${agentDef.ruleFile} for ${agent}: ${err.message}`));
         }
       }
     } else {
@@ -76,7 +91,6 @@ export class SDDEngine {
     // 4. Centralized Sideload using Registry
     console.log(chalk.blue(`\n📥 Provisioning SDD Hub Skills (${skillsToInject.join(", ")})...`));
     
-    const registry = RegistryLoader.load();
     const agentsSkillsDestDir = path.join(targetDir, ".agents", "skills");
     
     if (!fs.existsSync(agentsSkillsDestDir)) {

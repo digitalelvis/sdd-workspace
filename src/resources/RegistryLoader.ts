@@ -8,25 +8,49 @@ import { SkillRegistryCatalog } from "../domain/contracts/SkillRegistry";
 export class RegistryLoader {
   private static registryPath: string = "";
 
-  private static getPath(): string {
-    if (!this.registryPath) {
-      // Resolve path for both dev and dist environments
-      const basePath = __dirname.includes("dist")
-        ? path.join(__dirname, "..", "..", "src", "resources")
-        : path.join(__dirname, "..", "resources");
-      
-      this.registryPath = path.join(basePath, "registry.json");
-    }
-    return this.registryPath;
-  }
-
   public static load(): SkillRegistryCatalog {
+    const catalog: SkillRegistryCatalog = {
+      skills: {},
+      stacks: {},
+      agents: {},
+      ides: {}
+    };
+
     try {
-      const content = fs.readFileSync(this.getPath(), "utf-8");
-      return JSON.parse(content) as SkillRegistryCatalog;
+      const registryDir = path.join(this.getPath(), "registry");
+      if (fs.existsSync(registryDir)) {
+        const files = fs.readdirSync(registryDir).filter(f => f.endsWith(".json"));
+        for (const file of files) {
+          const filePath = path.join(registryDir, file);
+          const content = JSON.parse(fs.readFileSync(filePath, "utf-8"));
+          
+          // Merge based on filename or just shallow merge if structure matches
+          const key = path.basename(file, ".json");
+          if (key in catalog) {
+             (catalog as any)[key] = { ...(catalog as any)[key], ...content };
+          }
+        }
+      } else {
+        // Fallback for when registry directory doesn't exist (legacy support during transition)
+        const legacyPath = path.join(this.getPath(), "registry.json");
+        if (fs.existsSync(legacyPath)) {
+          const legacyContent = JSON.parse(fs.readFileSync(legacyPath, "utf-8"));
+          return { ...catalog, ...legacyContent };
+        }
+      }
+      return catalog;
     } catch (error) {
       console.error(`❌ Failed to load registry from ${this.registryPath}:`, error);
-      return { skills: {}, stacks: {} };
+      return catalog;
     }
+  }
+
+  private static getPath(): string {
+    // Resolve path for both dev and dist environments
+    const basePath = __dirname.includes("dist")
+      ? path.join(__dirname, "..", "..", "src", "resources")
+      : path.join(__dirname, "..", "resources");
+    
+    return basePath;
   }
 }

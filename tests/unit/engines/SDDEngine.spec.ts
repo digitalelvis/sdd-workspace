@@ -54,7 +54,24 @@ describe("SDDEngine - Registry-Driven Injection", () => {
         roles: ["global"]
       }
     },
-    stacks: {}
+    stacks: {
+      "nodejs": {
+        "defaultSkills": ["tlc-spec-driven"],
+        "ruleTemplateFile": "rules/node-rules.md",
+        "linterDependencies": ["eslint"]
+      }
+    },
+    agents: {
+      "cursor": {
+        "ruleFile": ".cursorrules",
+        "strategy": "reference"
+      }
+    },
+    ides: {
+      "vscode": {
+        "configDir": ".vscode"
+      }
+    }
   };
 
   beforeEach(() => {
@@ -90,7 +107,7 @@ describe("SDDEngine - Registry-Driven Injection", () => {
 
     expect(fs.writeFileSync).toHaveBeenCalledWith(
       expect.stringContaining(".cursorrules"),
-      expect.stringContaining("# Common Rules")
+      expect.stringContaining("[main.md](file://./.agents/rules/main.md)")
     );
   });
 

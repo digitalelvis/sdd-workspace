@@ -1,0 +1,17 @@
+{
+  "vscode": {
+    "configDir": ".vscode",
+    "files": [
+      { "template": "lint/vscode-settings.json", "target": "settings.json" }
+    ]
+  },
+  "cursor": {
+    "configDir": ".vscode"
+  },
+  "windsurf": {
+    "configDir": ".vscode"
+  },
+  "antigravity": {
+    "configDir": ".antigravity"
+  }
+}

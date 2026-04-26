@@ -1,12 +1,8 @@
+import fs from "fs";
+import path from "path";
+import chalk from "chalk";
 import { StackProvider, SetupOptions } from "../../domain/contracts/StackProvider";
-import { IdeProvider } from "../../domain/contracts/IdeProvider";
-import { IdeEnvironment } from "../../domain/enums/IdeEnvironment";
-
-// Mapping Ide providers locally as factory for now
-import { CursorIdeProvider } from "../providers/ides/CursorIdeProvider";
-import { VSCodeIdeProvider } from "../providers/ides/VSCodeIdeProvider";
-import { WindsurfIdeProvider } from "../providers/ides/WindsurfIdeProvider";
-import { AntigravityIdeProvider } from "../providers/ides/AntigravityIdeProvider";
+import { RegistryLoader } from "../../resources/RegistryLoader";
 
 export class EcosystemEngine {
   public setup(targetDir: string, stackProviders: StackProvider[], selectedIde: string | undefined, options: SetupOptions): void {
@@ -16,22 +12,42 @@ export class EcosystemEngine {
       stackProvider.setupEcosystem(targetDir, options);
     }
 
-    // 2. Map and run local Ide Configs
+    // 2. Provision Ide Configs from Registry
     if (selectedIde) {
-       const ideProvider = this.getIdeProvider(selectedIde);
-       if (ideProvider) {
-         ideProvider.setupIdeConfig(targetDir, options);
-       }
+       this.provisionIde(targetDir, selectedIde);
     }
   }
 
-  private getIdeProvider(ideName: string): IdeProvider | null {
-    switch(ideName.toLowerCase()) {
-      case IdeEnvironment.VSCODE: return new VSCodeIdeProvider();
-      case IdeEnvironment.CURSOR: return new CursorIdeProvider();
-      case IdeEnvironment.WINDSURF: return new WindsurfIdeProvider();
-      case IdeEnvironment.ANTIGRAVITY: return new AntigravityIdeProvider();
-      default: return null;
+  private provisionIde(targetDir: string, ideName: string): void {
+    const registry = RegistryLoader.load();
+    const ideDef = registry.ides[ideName.toLowerCase()];
+
+    if (!ideDef) {
+      console.warn(chalk.yellow(`⚠️ No registry definition found for IDE: ${ideName}`));
+      return;
     }
+
+    const configDir = path.join(targetDir, ideDef.configDir);
+    if (!fs.existsSync(configDir)) {
+      fs.mkdirSync(configDir, { recursive: true });
+    }
+
+    if (ideDef.files) {
+      const basePath = __dirname.includes("dist")
+        ? path.join(__dirname, "..", "..", "src", "resources")
+        : path.join(__dirname, "..", "resources");
+
+      for (const fileDef of ideDef.files) {
+        const sourcePath = path.join(basePath, fileDef.template);
+        const targetPath = path.join(configDir, fileDef.target);
+
+        if (fs.existsSync(sourcePath)) {
+          fs.copyFileSync(sourcePath, targetPath);
+          console.log(chalk.green(`  ↳ Provisioned ${fileDef.target} from template.`));
+        }
+      }
+    }
+
+    console.log(chalk.green(`✔️  Prepared ${ideName} local workspace config at ${ideDef.configDir}/`));
   }
 }

@@ -18,7 +18,19 @@ export interface StackDefinition {
   linterDependencies: string[];
 }
 
+export interface AgentDefinition {
+  ruleFile: string;
+  strategy: "reference" | "symlink" | "file";
+}
+
+export interface IdeDefinition {
+  configDir: string;
+  files?: Array<{ template: string; target: string }>;
+}
+
 export interface SkillRegistryCatalog {
   skills: Record<string, SkillDefinition>;
   stacks: Record<string, StackDefinition>;
+  agents: Record<string, AgentDefinition>;
+  ides: Record<string, IdeDefinition>;
 }

@@ -1,0 +1,39 @@
+# Roadmap
+
+## Phase 1: Foundation (Current)
+
+- [x] Basic CLI structure with Commander.
+- [x] Strategy pattern for IDE and Agent providers.
+- [x] Initial VSCode and Cursor support.
+- [x] Configuration resolution (layers).
+- [x] Basic workspace detection (Analyzer).
+- [x] Jest unit testing suite.
+
+## Phase 2: Scalable Architecture (Completed)
+
+- [x] **Registry-Driven Providers**: Move IDE and Agent metadata to `registry.json`.
+- [x] **Generic Engines**: Refactor `EcosystemEngine` and `SDDEngine` to use registry data.
+- [x] **Rules SSOT**: Centralize rules in `.agents/rules/` for all agents.
+- [x] **Symbolic Links/References**: Implement symlinks or reference prompts for `.cursorrules`, `.windsurfrules`, etc.
+- [x] **Dynamic Skill Loading**: Support for more complex skill provisioning modes.
+- [x] **CI/CD for Versioning**: Github Actions configured for version branches (`v*`).
+- [/] **Registry Structuring**: Split monolithic `registry.json` into modular files.
+
+
+## Phase 3: Expansion
+
+- [ ] Add support for more IDEs (WebStorm, IntelliJ).
+- [ ] Enhance Analyzer for monorepo detection.
+- [ ] Implement `apply` command for incremental updates.
+- [ ] Add more "Skills" to the default registry (e.g., Python-specific, Cloud-native).
+
+## Phase 4: Ecosystem
+
+- [ ] Plugin system for external providers.
+- [ ] Centralized "Skill Hub" for sharing community skills.
+- [ ] CI/CD integration for automated workspace health checks.
+
+## Status Tracking
+
+- **Current Version**: 0.1.1
+- **Next Milestone**: Enhanced Analyzer & Monorepo support.

@@ -8,10 +8,9 @@ import { WorkspaceConfig } from "../config/ConfigSchema";
 import { LOCAL_CONFIG_FILENAME } from "../config/defaults";
 
 // Stacks
+import { RegistryLoader } from "../resources/RegistryLoader";
 import { NodeStackProvider } from "./providers/stacks/NodeStackProvider";
-import { ReactStackProvider } from "./providers/stacks/ReactStackProvider";
-import { NextJsStackProvider } from "./providers/stacks/NextJsStackProvider";
-import { AIStackProvider } from "./providers/stacks/AIStackProvider";
+import { GenericStackProvider } from "./providers/stacks/GenericStackProvider";
 
 // Engines
 import { SDDEngine } from "./engines/SDDEngine";
@@ -92,26 +91,17 @@ export class WorkspaceService {
   // ─── Private helpers ─────────────────────────────────────────────────────
 
   public resolveStackProviders(stacks: SupportedStack[]): StackProvider[] {
+    const registry = RegistryLoader.load();
     const providers: StackProvider[] = [];
+    
     for (const stack of stacks) {
-      switch (stack) {
-        case SupportedStack.NEXTJS:
-          providers.push(new NextJsStackProvider());
-          break;
-        case SupportedStack.AI_GENERIC:
-          providers.push(new AIStackProvider());
-          break;
-        case SupportedStack.REACT:
-          providers.push(new ReactStackProvider());
-          break;
-        case SupportedStack.NODEJS:
-        case SupportedStack.PYTHON:
-        case SupportedStack.PHP:
-        case SupportedStack.LARAVEL:
-        case SupportedStack.VUE:
-        default:
-          providers.push(new NodeStackProvider());
-          break;
+      const stackDef = registry.stacks[stack];
+      if (stackDef) {
+        providers.push(new GenericStackProvider(stack, stackDef));
+      } else {
+        console.warn(chalk.yellow(`⚠️ No registry definition found for stack: ${stack}`));
+        // Fallback to a basic Node provider or similar if needed
+        providers.push(new NodeStackProvider());
       }
     }
     return providers;
