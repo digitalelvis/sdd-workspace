@@ -11,6 +11,7 @@ import { LOCAL_CONFIG_FILENAME } from "../config/defaults";
 import { RegistryLoader } from "../resources/RegistryLoader";
 import { NodeStackProvider } from "./providers/stacks/NodeStackProvider";
 import { GenericStackProvider } from "./providers/stacks/GenericStackProvider";
+import { ResourcePathUtils } from "../utils/ResourcePathUtils";
 
 // Engines
 import { SDDEngine } from "./engines/SDDEngine";
@@ -63,9 +64,7 @@ export class WorkspaceService {
       }
 
       // 6. Provision CI/CD
-      const basePath = __dirname.includes("dist")
-        ? path.join(__dirname, "..", "..", "src", "resources")
-        : path.join(__dirname, "..", "resources");
+      const basePath = ResourcePathUtils.getResourcesPath();
       this.cicdEngine.setup(targetDir, basePath, stacks);
     } catch (error) {
       console.error(chalk.red("\n❌ Critical Exception during Injection:"), error);

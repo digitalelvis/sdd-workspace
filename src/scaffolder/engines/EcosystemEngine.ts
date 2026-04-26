@@ -3,6 +3,7 @@ import path from "path";
 import chalk from "chalk";
 import { StackProvider, SetupOptions } from "../../domain/contracts/StackProvider";
 import { RegistryLoader } from "../../resources/RegistryLoader";
+import { ResourcePathUtils } from "../../utils/ResourcePathUtils";
 
 export class EcosystemEngine {
   public setup(targetDir: string, stackProviders: StackProvider[], selectedIde: string | undefined, options: SetupOptions): void {
@@ -33,9 +34,7 @@ export class EcosystemEngine {
     }
 
     if (ideDef.files) {
-      const basePath = __dirname.includes("dist")
-        ? path.join(__dirname, "..", "..", "src", "resources")
-        : path.join(__dirname, "..", "resources");
+      const basePath = ResourcePathUtils.getResourcesPath();
 
       for (const fileDef of ideDef.files) {
         const sourcePath = path.join(basePath, fileDef.template);

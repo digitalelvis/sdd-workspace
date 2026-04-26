@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { SkillRegistryCatalog } from "../domain/contracts/SkillRegistry";
+import { ResourcePathUtils } from "../utils/ResourcePathUtils";
 
 /**
  * RegistryLoader — Centralizes access to the registry.json resource.
@@ -47,11 +48,6 @@ export class RegistryLoader {
   }
 
   private static getPath(): string {
-    // Resolve path for both dev and dist environments
-    const basePath = __dirname.includes("dist")
-      ? path.join(__dirname, "..", "..", "src", "resources")
-      : path.join(__dirname, "..", "resources");
-    
-    return basePath;
+    return ResourcePathUtils.getResourcesPath();
   }
 }
