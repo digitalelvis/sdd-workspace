@@ -7,6 +7,8 @@ import { SupportedStack } from "../domain/enums/SupportedStack";
 import { SupportedDatabase } from "../domain/enums/SupportedDatabase";
 import { GlobalConfigManager } from "./GlobalConfigManager";
 import { RegistryLoader } from "../resources/RegistryLoader";
+import pkg from "../../package.json";
+
 
 export interface CliFlags {
   agents?: AiAgent[];
@@ -116,7 +118,7 @@ export class ConfigResolver {
     updatedAt: string = new Date().toISOString(),
   ): LocalWorkspaceConfig {
     return {
-      version: "0.0.2",
+      version: pkg.version,
       stacks: resolved.stacks || [],
       agents: resolved.agents || [],
       ide: resolved.ide,

@@ -4,6 +4,7 @@ import { ConfigResolver } from "../../../src/config/ConfigResolver";
 import { AiAgent } from "../../../src/domain/enums/AiAgent";
 import { SupportedStack } from "../../../src/domain/enums/SupportedStack";
 import { RegistryLoader } from "../../../src/resources/RegistryLoader";
+import pkg from "../../../package.json";
 
 jest.mock("fs");
 jest.mock("../../../src/resources/RegistryLoader");
@@ -94,7 +95,7 @@ describe("ConfigResolver - 4-Layer Merge Hierarchy", () => {
     const resolved = resolver.resolve({ stacks: [SupportedStack.NODEJS] }, "/fake/project");
     const content = resolver.generateLocalConfigContent(resolved, "2026-01-01T00:00:00.000Z");
 
-    expect(content.version).toBe("0.0.2");
+    expect(content.version).toBe(pkg.version);
     expect(content.stacks).toContain(SupportedStack.NODEJS);
     expect(content.updatedAt).toBe("2026-01-01T00:00:00.000Z");
   });
