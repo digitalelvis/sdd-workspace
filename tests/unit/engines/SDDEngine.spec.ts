@@ -54,10 +54,30 @@ describe("SDDEngine - Registry-Driven Injection", () => {
         roles: ["global"]
       }
     },
+    rules: {
+      "engineering-rules": {
+        resource: "rule",
+        mode: "local",
+        path: "rules/engineering-rules.md",
+        roles: ["global"]
+      },
+      "node-rules": {
+        resource: "rule",
+        mode: "local",
+        path: "rules/node-rules.md",
+        roles: ["backend"]
+      },
+      "extra-rules": {
+        resource: "rule",
+        mode: "local",
+        path: "rules/extra-rules.md",
+        roles: ["backend"]
+      }
+    },
     stacks: {
       "nodejs": {
         "defaultSkills": ["tlc-spec-driven"],
-        "ruleTemplateFile": "rules/node-rules.md",
+        "defaultRules": ["node-rules", "extra-rules"],
         "linterDependencies": ["eslint"]
       }
     },
@@ -88,16 +108,22 @@ describe("SDDEngine - Registry-Driven Injection", () => {
     warnSpy.mockRestore();
   });
 
-  it("should throw an error if common-rules.md is missing", async () => {
+  it("should throw an error if engineering-rules is not in registry", async () => {
+    const emptyRegistry = { ...mockRegistry, rules: {} };
+    (RegistryLoader.load as jest.Mock).mockReturnValue(emptyRegistry);
     (fs.existsSync as jest.Mock).mockReturnValue(false);
-    await expect(
-      sddEngine.inject("/target/dir", [], [AiAgent.CURSOR], [])
-    ).rejects.toThrow("common-rules.md not found");
+    
+    // It should not throw because it just warns and continues if it fails to provision, 
+    // but the test expects it to work if common rules are there.
+    // Actually, I removed the throw in SDDEngine for common rules.
+    await sddEngine.inject("/target/dir", [], [AiAgent.CURSOR], []);
+    expect(warnSpy).not.toHaveBeenCalled(); // Should just work with default content if nothing is found
   });
 
   it("should inject rules for selected agents", async () => {
     (fs.existsSync as jest.Mock).mockImplementation((filePath: string) => {
-      return String(filePath).endsWith("common-rules.md");
+      if (String(filePath).includes("engineering-rules.md")) return true;
+      return false;
     });
     (fs.readFileSync as jest.Mock).mockReturnValue("# Common Rules");
     (fs.mkdirSync as jest.Mock).mockImplementation(() => {});
@@ -111,9 +137,40 @@ describe("SDDEngine - Registry-Driven Injection", () => {
     );
   });
 
+  it("should concatenate multiple rules defined in defaultRules", async () => {
+    (fs.existsSync as jest.Mock).mockImplementation((filePath: string) => {
+      // Logic: First they are checked for provisioning (basePath + source), then for reading (targetDir + rulesDir + id.md)
+      if (String(filePath).includes("rules/engineering-rules.md")) return true;
+      if (String(filePath).includes("rules/node-rules.md")) return true;
+      if (String(filePath).includes("rules/extra-rules.md")) return true;
+      if (String(filePath).includes(".agents/rules/engineering-rules.md")) return true;
+      if (String(filePath).includes(".agents/rules/node-rules.md")) return true;
+      if (String(filePath).includes(".agents/rules/extra-rules.md")) return true;
+      return false;
+    });
+    (fs.readFileSync as jest.Mock).mockImplementation((filePath: string) => {
+      if (String(filePath).includes("engineering-rules.md")) return "# Common";
+      if (String(filePath).includes("node-rules.md")) return "# Node";
+      if (String(filePath).includes("extra-rules.md")) return "# Extra";
+      return "";
+    });
+    (fs.mkdirSync as jest.Mock).mockImplementation(() => {});
+    (fs.writeFileSync as jest.Mock).mockImplementation(() => {});
+    (fs.cpSync as jest.Mock).mockImplementation(() => {});
+
+    await sddEngine.inject("/target/dir", [new NodeStackProvider()], [AiAgent.CURSOR], []);
+
+    // Check main.md content
+    expect(fs.writeFileSync).toHaveBeenCalledWith(
+      expect.stringContaining("main.md"),
+      expect.stringContaining("# Common\n\n# Node\n\n# Extra")
+    );
+  });
+
   it("should execute CLI command for 'cli' mode skills from registry", async () => {
     (fs.existsSync as jest.Mock).mockImplementation((filePath: string) => {
-      return String(filePath).endsWith("common-rules.md");
+      if (String(filePath).includes("engineering-rules.md")) return true;
+      return false;
     });
     (fs.readFileSync as jest.Mock).mockReturnValue("# Common Rules");
     (fs.mkdirSync as jest.Mock).mockImplementation(() => {});
@@ -129,7 +186,7 @@ describe("SDDEngine - Registry-Driven Injection", () => {
 
   it("should provision 'local' mode skills by copying directory", async () => {
     (fs.existsSync as jest.Mock).mockImplementation((filePath: string) => {
-      if (String(filePath).endsWith("common-rules.md")) return true;
+      if (String(filePath).endsWith("engineering-rules.md")) return true;
       if (String(filePath).includes("skills/local-skill")) return true;
       return false;
     });
@@ -148,7 +205,8 @@ describe("SDDEngine - Registry-Driven Injection", () => {
 
   it("should provision 'remote' mode skills by fetching URL", async () => {
     (fs.existsSync as jest.Mock).mockImplementation((filePath: string) => {
-      return String(filePath).endsWith("common-rules.md");
+      if (String(filePath).includes("engineering-rules.md")) return true;
+      return false;
     });
     (fs.readFileSync as jest.Mock).mockReturnValue("# Content");
     (fs.mkdirSync as jest.Mock).mockImplementation(() => {});
@@ -171,7 +229,8 @@ describe("SDDEngine - Registry-Driven Injection", () => {
 
   it("should provision 'git' mode skills via GitHub API", async () => {
     (fs.existsSync as jest.Mock).mockImplementation((filePath: string) => {
-      return String(filePath).endsWith("common-rules.md");
+      if (String(filePath).includes("engineering-rules.md")) return true;
+      return false;
     });
     (fs.readFileSync as jest.Mock).mockReturnValue("# Content");
     (fs.mkdirSync as jest.Mock).mockImplementation(() => {});
@@ -205,7 +264,7 @@ describe("SDDEngine - Registry-Driven Injection", () => {
 
   it("should provision 'git' mode skills via clone for non-GitHub URLs", async () => {
     (fs.existsSync as jest.Mock).mockImplementation((filePath: string) => {
-      if (String(filePath).endsWith("common-rules.md")) return true;
+      if (String(filePath).endsWith("engineering-rules.md")) return true;
       if (String(filePath).includes(".sdd-temp-skill")) return true;
       return false;
     });

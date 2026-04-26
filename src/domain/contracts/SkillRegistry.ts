@@ -1,7 +1,7 @@
 export type SkillStrategyMode = "cli" | "remote" | "local" | "git";
-export type ResourceType = "skill";
+export type ResourceType = "skill" | "rule";
 
-export interface SkillDefinition {
+export interface ResourceDefinition {
   resource: ResourceType;
   mode: SkillStrategyMode;
   roles: string[];
@@ -14,7 +14,8 @@ export interface SkillDefinition {
 
 export interface StackDefinition {
   defaultSkills: string[];
-  ruleTemplateFile: string;
+  ruleTemplateFile?: string;
+  defaultRules?: string[];
   linterDependencies: string[];
 }
 
@@ -29,7 +30,8 @@ export interface IdeDefinition {
 }
 
 export interface SkillRegistryCatalog {
-  skills: Record<string, SkillDefinition>;
+  skills: Record<string, ResourceDefinition>;
+  rules: Record<string, ResourceDefinition>;
   stacks: Record<string, StackDefinition>;
   agents: Record<string, AgentDefinition>;
   ides: Record<string, IdeDefinition>;

@@ -1,4 +1,4 @@
-## 2. Framework Guidelines: Next.js
+## 1. Next.js Framework Guidelines
 
 You are operating within a Next.js environment. Before implementing layouts, data fetching, or server components, you MUST consult the stack-specific skills injected into the workspace:
 

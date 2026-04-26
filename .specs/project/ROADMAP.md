@@ -17,8 +17,8 @@
 - [x] **Symbolic Links/References**: Implement symlinks or reference prompts for `.cursorrules`, `.windsurfrules`, etc.
 - [x] **Dynamic Skill Loading**: Support for more complex skill provisioning modes.
 - [x] **CI/CD for Versioning**: Github Actions configured for version branches (`v*`).
-- [/] **Registry Structuring**: Split monolithic `registry.json` into modular files.
-
+- [x] **Registry Structuring**: Split monolithic `registry.json` into modular files.
+- [] **Add command**: Add command to add new skills and rules.
 
 ## Phase 3: Expansion
 

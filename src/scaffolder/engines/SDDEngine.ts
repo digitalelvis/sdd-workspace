@@ -17,106 +17,151 @@ export class SDDEngine {
     database?: string[],
     security?: string[]
   ): Promise<void> {
-    const basePath = __dirname.includes("dist")
-      ? path.join(__dirname, "..", "..", "..", "src", "resources")
-      : path.join(__dirname, "..", "..", "resources");
+    const { basePath, registry, rulesDestDir, agentsSkillsDestDir } = this.initializeContext(targetDir);
 
-    const registry = RegistryLoader.load();
+    // 1. Provision and Combine Rules Content
+    const fullRuleContent = await this.provisionAndComposeRules(
+      targetDir,
+      rulesDestDir,
+      stackProviders,
+      registry,
+      basePath,
+      ruleTemplates
+    );
 
-    // 1. Load Common Rules Content
-    let mainRuleContent = "";
-    const commonRulesPath = path.join(basePath, "common-rules.md");
-    if (fs.existsSync(commonRulesPath)) {
-      mainRuleContent = fs.readFileSync(commonRulesPath, "utf-8");
-    } else {
-      throw new Error("common-rules.md not found");
-    }
+    // 2. Configure AI Agents with Rules
+    this.configureAgents(targetDir, selectedAgents, registry, fullRuleContent);
 
-    // 2. Combine Rules Content from Stacks
-    let combinedStackRuleContent = "";
-    if (ruleTemplates) {
-      for (const [stackName, templateFile] of Object.entries(ruleTemplates)) {
-        const stackRulesPath = path.join(basePath, templateFile);
-        if (fs.existsSync(stackRulesPath)) {
-          combinedStackRuleContent += fs.readFileSync(stackRulesPath, "utf-8") + "\n\n";
-        } else {
-          combinedStackRuleContent += `## 2. ${stackName.toUpperCase()} AI Environment Setup\nFollow standard SDD best practices.\n\n`;
-        }
-      }
-    }
+    // 3. Provision Specialized Skills
+    await this.provisionSkills(targetDir, skillsToInject, registry, agentsSkillsDestDir, basePath);
 
-    const fullRuleContent = `${mainRuleContent}\n\n${combinedStackRuleContent.trim()}`;
-
-    // 3. Centralize Rules (SSOT)
-    const rulesDir = path.join(targetDir, ".agents", "rules");
-    if (!fs.existsSync(rulesDir)) {
-      fs.mkdirSync(rulesDir, { recursive: true });
-    }
-    const mainRulesFilePath = path.join(rulesDir, "main.md");
-    fs.writeFileSync(mainRulesFilePath, fullRuleContent);
-    console.log(chalk.green(`✔️  Centralized AI rules at .agents/rules/main.md`));
-
-    // 4. Map Agent Configs from Registry
-    if (selectedAgents.length > 0) {
-      for (const agent of selectedAgents) {
-        const agentDef = registry.agents[agent];
-        if (!agentDef) {
-          console.warn(chalk.yellow(`⚠️ No registry definition found for agent: ${agent}`));
-          continue;
-        }
-
-        const agentConfigPath = path.join(targetDir, agentDef.ruleFile);
-        
-        try {
-          if (agentDef.strategy === "reference") {
-            const referenceContent = `# Spec-Driven Development Rules\n\nTo ensure consistency and quality, please strictly adhere to the project-wide rules defined in:\n\n- [main.md](file://./.agents/rules/main.md)\n`;
-            fs.writeFileSync(agentConfigPath, referenceContent);
-            console.log(chalk.green(`  ↳ Created ${agentDef.ruleFile} referencing centralized rules.`));
-          } else if (agentDef.strategy === "symlink") {
-            if (fs.existsSync(agentConfigPath)) fs.unlinkSync(agentConfigPath);
-            fs.symlinkSync(".agents/rules/main.md", agentConfigPath);
-            console.log(chalk.green(`  ↳ Created symlink ${agentDef.ruleFile} -> .agents/rules/main.md`));
-          } else {
-            fs.writeFileSync(agentConfigPath, fullRuleContent);
-            console.log(chalk.green(`  ↳ Injected full rules into ${agentDef.ruleFile}`));
-          }
-        } catch (err: any) {
-          console.warn(chalk.yellow(`⚠️ Could not configure ${agentDef.ruleFile} for ${agent}: ${err.message}`));
-        }
-      }
-    } else {
-      console.log(chalk.yellow("\n⚠️ No AI Agents selected or matched. Generated base skills but skipped specific rule bindings."));
-    }
-
-    // 4. Centralized Sideload using Registry
-    console.log(chalk.blue(`\n📥 Provisioning SDD Hub Skills (${skillsToInject.join(", ")})...`));
-    
-    const agentsSkillsDestDir = path.join(targetDir, ".agents", "skills");
-    
-    if (!fs.existsSync(agentsSkillsDestDir)) {
-      fs.mkdirSync(agentsSkillsDestDir, { recursive: true });
-    }
-
-    for (const skillName of skillsToInject) {
-      const skillDef = registry.skills[skillName];
-      console.log(chalk.cyan(`  ↳ Processing [${skillName}]...`));
-
-      try {
-        await this.provisionSkill(skillName, skillDef, targetDir, agentsSkillsDestDir, basePath);
-      } catch (err) {
-        console.error(chalk.red(`    ❌ Failed to provision skill ${skillName}:`), err);
-      }
-    }
-    
-    console.log(chalk.green(`✔️  Injected living SDD document schemas successfully.`));
-    
-    // 5. Generate AGENT.md from template
+    // 4. Generate Orchestration Documentation
     await this.generateAgentMd(targetDir, basePath, {
       stacks: stackProviders.map(p => p.stack),
       databases: database || [],
       agents: selectedAgents,
       skills: skillsToInject
     });
+
+    console.log(chalk.green(`✔️  Injected living SDD document schemas successfully.`));
+  }
+
+  private initializeContext(targetDir: string) {
+    const basePath = __dirname.includes("dist")
+      ? path.join(__dirname, "..", "..", "..", "src", "resources")
+      : path.join(__dirname, "..", "..", "resources");
+
+    const registry = RegistryLoader.load();
+    const rulesDestDir = path.join(targetDir, ".agents", "rules");
+    const agentsSkillsDestDir = path.join(targetDir, ".agents", "skills");
+
+    [rulesDestDir, agentsSkillsDestDir].forEach(dir => {
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    });
+
+    return { basePath, registry, rulesDestDir, agentsSkillsDestDir };
+  }
+
+  private async provisionAndComposeRules(
+    targetDir: string,
+    rulesDestDir: string,
+    stackProviders: StackProvider[],
+    registry: any,
+    basePath: string,
+    ruleTemplates?: Record<string, string>
+  ): Promise<string> {
+    let combinedContent = "";
+    
+    // Provision Base Rules
+    const baseRuleId = "engineering-rules";
+    const baseRuleDef = registry.rules[baseRuleId];
+    if (baseRuleDef) {
+      console.log(chalk.blue(`\n📥 Provisioning Base Rules [${baseRuleId}]...`));
+      await this.provisionResource(baseRuleId, baseRuleDef, targetDir, rulesDestDir, basePath);
+      combinedContent += this.readProvisionedRule(rulesDestDir, baseRuleId);
+    }
+
+    // Provision Stack Specific Rules
+    const activeStacks = stackProviders.map(p => p.stack as string);
+    for (const stack of activeStacks) {
+      const stackDef = registry.stacks[stack];
+      if (!stackDef) continue;
+
+      console.log(chalk.blue(`\n📥 Provisioning Rules for stack [${stack}]...`));
+
+      if (stackDef.defaultRules) {
+        for (const ruleId of stackDef.defaultRules) {
+          if (ruleId === baseRuleId) continue;
+          await this.provisionResource(ruleId, registry.rules[ruleId], targetDir, rulesDestDir, basePath);
+          combinedContent += this.readProvisionedRule(rulesDestDir, ruleId);
+        }
+      }
+
+      // Handle overrides
+      if (ruleTemplates?.[stack]) {
+        const overridePath = path.join(basePath, ruleTemplates[stack]);
+        if (fs.existsSync(overridePath)) {
+          combinedContent += fs.readFileSync(overridePath, "utf-8") + "\n\n";
+        }
+      }
+    }
+
+    const finalContent = combinedContent.trim() || "## AI Environment Setup\nFollow standard SDD best practices.\n\n";
+    fs.writeFileSync(path.join(rulesDestDir, "main.md"), finalContent);
+    console.log(chalk.green(`✔️  Centralized AI rules at .agents/rules/main.md`));
+
+    return finalContent;
+  }
+
+  private readProvisionedRule(destDir: string, ruleId: string): string {
+    const rulePath = path.join(destDir, `${ruleId}.md`);
+    return fs.existsSync(rulePath) ? fs.readFileSync(rulePath, "utf-8") + "\n\n" : "";
+  }
+
+  private configureAgents(targetDir: string, agents: AiAgent[], registry: any, fullRuleContent: string) {
+    if (agents.length === 0) {
+      console.log(chalk.yellow("\n⚠️ No AI Agents selected. Skipping specific rule bindings."));
+      return;
+    }
+
+    for (const agent of agents) {
+      const agentDef = registry.agents[agent];
+      if (!agentDef) continue;
+
+      const agentConfigPath = path.join(targetDir, agentDef.ruleFile);
+      try {
+        this.applyAgentStrategy(agentConfigPath, agentDef, fullRuleContent);
+        console.log(chalk.green(`  ↳ Configured ${agent} via ${agentDef.strategy} strategy.`));
+      } catch (err: any) {
+        console.warn(chalk.yellow(`⚠️ Could not configure ${agent}: ${err.message}`));
+      }
+    }
+  }
+
+  private applyAgentStrategy(configPath: string, agentDef: any, content: string) {
+    if (agentDef.strategy === "reference") {
+      const ref = `# Spec-Driven Development Rules\n\nCentralized rules defined in:\n\n- [main.md](file://./.agents/rules/main.md)\n`;
+      fs.writeFileSync(configPath, ref);
+    } else if (agentDef.strategy === "symlink") {
+      if (fs.existsSync(configPath)) fs.unlinkSync(configPath);
+      fs.symlinkSync(".agents/rules/main.md", configPath);
+    } else {
+      fs.writeFileSync(configPath, content);
+    }
+  }
+
+  private async provisionSkills(targetDir: string, skills: string[], registry: any, destDir: string, basePath: string) {
+    if (skills.length === 0) return;
+    
+    console.log(chalk.blue(`\n📥 Provisioning SDD Hub Skills (${skills.join(", ")})...`));
+    for (const skillName of skills) {
+      console.log(chalk.cyan(`  ↳ Processing skill [${skillName}]...`));
+      try {
+        await this.provisionResource(skillName, registry.skills[skillName], targetDir, destDir, basePath);
+      } catch (err) {
+        console.error(chalk.red(`    ❌ Failed to provision skill ${skillName}:`), err);
+      }
+    }
   }
 
   private async generateAgentMd(targetDir: string, basePath: string, context: any) {
@@ -147,40 +192,42 @@ export class SDDEngine {
     console.log(chalk.green(`✔️  Generated ${path.basename(finalPath)} for AI orchestration.`));
   }
 
-  private async provisionSkill(
-    skillName: string,
-    skillDef: any,
+  private async provisionResource(
+    resourceName: string,
+    resourceDef: any,
     targetDir: string,
-    agentsSkillsDestDir: string,
+    destDir: string,
     basePath: string
   ): Promise<void> {
-    const skillDestDir = path.join(agentsSkillsDestDir, skillName);
+    const resourceDestDir = path.join(destDir, resourceName);
     
-    if (!fs.existsSync(skillDestDir)) {
-      fs.mkdirSync(skillDestDir, { recursive: true });
+    if (!fs.existsSync(resourceDestDir)) {
+      fs.mkdirSync(resourceDestDir, { recursive: true });
     }
 
-    if (!skillDef) {
-      this.processLocalSkill(skillName, basePath, agentsSkillsDestDir);
+    if (!resourceDef) {
+      this.processLocalResource(resourceName, basePath, destDir, false, resourceDef?.resource === "rule");
       return;
     }
 
-    switch (skillDef.mode) {
+    switch (resourceDef.mode) {
       case "cli":
-        if (skillDef.command) {
-          console.log(chalk.gray(`    Executing external installer: ${skillDef.command}`));
-          execSync(skillDef.command, { stdio: "inherit", cwd: targetDir });
+        if (resourceDef.command) {
+          console.log(chalk.gray(`    Executing external installer: ${resourceDef.command}`));
+          execSync(resourceDef.command, { stdio: "inherit", cwd: targetDir });
         }
         break;
 
       case "remote":
-        if (skillDef.url) {
-          console.log(chalk.gray(`    Fetching remote skill document...`));
-          const response = await fetch(skillDef.url);
+        if (resourceDef.url) {
+          console.log(chalk.gray(`    Fetching remote ${resourceDef.resource} document...`));
+          const response = await fetch(resourceDef.url);
           if (!response.ok) throw new Error(`HTTP ${response.status}`);
           const content = await response.text();
-          // For remote mode, we assume the URL is the SKILL.md content unless path is specified
-          const targetFile = skillDef.path ? path.join(targetDir, skillDef.path) : path.join(skillDestDir, "SKILL.md");
+          
+          const defaultFilename = resourceDef.resource === "rule" ? `${resourceName}.md` : "SKILL.md";
+          const targetFile = resourceDef.path ? path.join(targetDir, resourceDef.path) : path.join(resourceDestDir, defaultFilename);
+          
           fs.mkdirSync(path.dirname(targetFile), { recursive: true });
           fs.writeFileSync(targetFile, content, "utf-8");
           console.log(chalk.green(`    ✔️ Downloaded to ${path.relative(targetDir, targetFile)}`));
@@ -188,33 +235,32 @@ export class SDDEngine {
         break;
 
       case "local": {
-        const source = skillDef.path || `skills/${skillName}`;
-        this.processLocalSkill(skillName, path.join(basePath, source), agentsSkillsDestDir, true);
+        const source = resourceDef.path || (resourceDef.resource === "rule" ? `rules/${resourceName}.md` : `skills/${resourceName}`);
+        this.processLocalResource(resourceName, path.join(basePath, source), destDir, true, resourceDef.resource === "rule");
         break;
       }
 
       case "git": {
-        if (!skillDef.url) throw new Error("Git URL is required for git mode");
-        console.log(chalk.gray(`    Provisioning via Git (${skillDef.url}${skillDef.subpath ? ` / ${skillDef.subpath}` : ""})...`));
+        if (!resourceDef.url) throw new Error("Git URL is required for git mode");
+        console.log(chalk.gray(`    Provisioning via Git (${resourceDef.url}${resourceDef.subpath ? ` / ${resourceDef.subpath}` : ""})...`));
         
-        const isGitHub = skillDef.url.includes("github.com");
+        const isGitHub = resourceDef.url.includes("github.com");
         if (isGitHub) {
-          await this.provisionFromGitHub(skillDef, skillDestDir);
+          await this.provisionFromGitHub(resourceDef, resourceDestDir);
         } else {
-          // Fallback to shallow clone for other git providers
-          this.provisionViaClone(skillDef, skillDestDir, targetDir);
+          this.provisionViaClone(resourceDef, resourceDestDir, targetDir);
         }
         break;
       }
     }
   }
 
-  private async provisionFromGitHub(skillDef: any, destDir: string): Promise<void> {
-    const urlParts = skillDef.url.replace("https://github.com/", "").split("/");
+  private async provisionFromGitHub(resourceDef: any, destDir: string): Promise<void> {
+    const urlParts = resourceDef.url.replace("https://github.com/", "").split("/");
     const owner = urlParts[0];
     const repo = urlParts[1].replace(".git", "");
-    const branch = skillDef.branch || "main";
-    const subpath = skillDef.subpath || "";
+    const branch = resourceDef.branch || "main";
+    const subpath = resourceDef.subpath || "";
 
     const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${subpath}?ref=${branch}`;
     
@@ -250,40 +296,40 @@ export class SDDEngine {
     }
   }
 
-  private provisionViaClone(skillDef: any, destDir: string, targetDir: string): void {
-    const tempDir = path.join(targetDir, ".sdd-temp-skill");
+  private provisionViaClone(resourceDef: any, destDir: string, targetDir: string): void {
+    const tempDir = path.join(targetDir, `.sdd-temp-${resourceDef.resource}`);
     if (fs.existsSync(tempDir)) fs.rmSync(tempDir, { recursive: true, force: true });
     
     try {
-      const branchFlag = skillDef.branch ? `-b ${skillDef.branch}` : "";
-      const cloneCmd = ["git clone --depth 1", branchFlag, skillDef.url, tempDir].filter(Boolean).join(" ");
+      const branchFlag = resourceDef.branch ? `-b ${resourceDef.branch}` : "";
+      const cloneCmd = ["git clone --depth 1", branchFlag, resourceDef.url, tempDir].filter(Boolean).join(" ");
       execSync(cloneCmd, { stdio: "ignore" });
       
-      const sourceDir = skillDef.subpath ? path.join(tempDir, skillDef.subpath) : tempDir;
+      const sourceDir = resourceDef.subpath ? path.join(tempDir, resourceDef.subpath) : tempDir;
       if (fs.existsSync(sourceDir)) {
         fs.cpSync(sourceDir, destDir, { recursive: true, force: true });
         console.log(chalk.green(`    ✔️ Git structure provisioned via clone`));
       } else {
-        throw new Error(`Subpath ${skillDef.subpath} not found in repository`);
+        throw new Error(`Subpath ${resourceDef.subpath} not found in repository`);
       }
     } finally {
       if (fs.existsSync(tempDir)) fs.rmSync(tempDir, { recursive: true, force: true });
     }
   }
 
-  private processLocalSkill(skillName: string, sourceBasePath: string, destDir: string, isAbsolutePath = false) {
-    const skillSourceDir = isAbsolutePath ? sourceBasePath : path.join(sourceBasePath, "skills", skillName);
-    const skillDestDir = path.join(destDir, skillName);
+  private processLocalResource(resourceName: string, sourceBasePath: string, destDir: string, isAbsolutePath = false, isFile = false) {
+    const resourceSource = isAbsolutePath ? sourceBasePath : path.join(sourceBasePath, "skills", resourceName);
+    const resourceDest = isFile ? path.join(destDir, `${resourceName}.md`) : path.join(destDir, resourceName);
 
-    if (fs.existsSync(skillSourceDir)) {
+    if (fs.existsSync(resourceSource)) {
       try {
-         fs.cpSync(skillSourceDir, skillDestDir, { recursive: true, force: true });
-         console.log(chalk.green(`    ✔️ Local structure injected`));
+         fs.cpSync(resourceSource, resourceDest, { recursive: true, force: true });
+         console.log(chalk.green(`    ✔️ Local resource injected`));
       } catch (copyErr) {
-         console.error(chalk.red(`    ❌ Failed to copy local skill ${skillName}`), copyErr);
+         console.warn(chalk.yellow(`    ⚠️ Failed to copy local resource: ${resourceName}`));
       }
     } else {
-      console.warn(chalk.yellow(`    ⚠️ Sideloaded skill resources not found locally at ${skillSourceDir}`));
+      console.warn(chalk.yellow(`    ⚠️ Sideloaded resource not found locally at ${resourceSource}`));
     }
   }
 }

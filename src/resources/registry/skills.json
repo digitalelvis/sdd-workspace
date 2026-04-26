@@ -1,4 +1,10 @@
 {
+  "spec-driven": {
+    "resource": "skill",
+    "mode": "local",
+    "path": "skills/spec-driven",
+    "roles": ["global"]
+  },
   "tlc-spec-driven": {
     "resource": "skill",
     "mode": "cli",

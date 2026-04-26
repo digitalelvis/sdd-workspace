@@ -11,6 +11,7 @@ export class RegistryLoader {
   public static load(): SkillRegistryCatalog {
     const catalog: SkillRegistryCatalog = {
       skills: {},
+      rules: {},
       stacks: {},
       agents: {},
       ides: {}

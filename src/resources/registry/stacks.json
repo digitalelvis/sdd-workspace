@@ -1,12 +1,12 @@
 {
   "nodejs": {
-    "defaultSkills": ["tlc-spec-driven", "nodejs-best-practices"],
-    "ruleTemplateFile": "rules/node-rules.md",
+    "defaultSkills": ["spec-driven", "nodejs-best-practices"],
+    "defaultRules": ["engineering-rules", "node-rules"],
     "linterDependencies": ["eslint@8.56.0", "prettier@3.1.0"]
   },
   "react": {
-    "defaultSkills": ["tlc-spec-driven", "react-best-practices", "react-ui-patterns"],
-    "ruleTemplateFile": "react-rules.md",
+    "defaultSkills": ["spec-driven", "react-best-practices", "react-ui-patterns"],
+    "defaultRules": ["engineering-rules", "react-rules"],
     "linterDependencies": [
       "eslint@8.56.0",
       "prettier@3.1.0",
@@ -17,33 +17,33 @@
     ]
   },
   "nextjs": {
-    "defaultSkills": ["tlc-spec-driven", "nextjs-best-practices", "deploy-to-vercel", "web-design-guidelines"],
-    "ruleTemplateFile": "rules/next-rules.md",
+    "defaultSkills": ["spec-driven", "nextjs-best-practices", "deploy-to-vercel", "web-design-guidelines"],
+    "defaultRules": ["engineering-rules", "next-rules"],
     "linterDependencies": ["eslint@8.56.0", "prettier@3.1.0", "eslint-config-next"]
   },
   "ai-generic": {
-    "defaultSkills": ["tlc-spec-driven", "clean-code", "architect-review"],
-    "ruleTemplateFile": "rules/common-rules.md",
+    "defaultSkills": ["spec-driven", "clean-code", "architect-review"],
+    "defaultRules": ["engineering-rules"],
     "linterDependencies": []
   },
   "python": {
-    "defaultSkills": ["tlc-spec-driven"],
-    "ruleTemplateFile": "rules/python-rules.md",
+    "defaultSkills": ["spec-driven"],
+    "defaultRules": ["engineering-rules", "python-rules"],
     "linterDependencies": ["flake8", "black"]
   },
   "php": {
-    "defaultSkills": ["tlc-spec-driven"],
-    "ruleTemplateFile": "rules/php-rules.md",
+    "defaultSkills": ["spec-driven"],
+    "defaultRules": ["engineering-rules", "php-rules"],
     "linterDependencies": ["php-cs-fixer"]
   },
   "laravel": {
-    "defaultSkills": ["tlc-spec-driven"],
-    "ruleTemplateFile": "rules/laravel-rules.md",
+    "defaultSkills": ["spec-driven"],
+    "defaultRules": ["engineering-rules", "laravel-rules"],
     "linterDependencies": ["php-cs-fixer", "tightenco/ziggy"]
   },
   "vue": {
-    "defaultSkills": ["tlc-spec-driven", "web-design-guidelines"],
-    "ruleTemplateFile": "rules/vue-rules.md",
+    "defaultSkills": ["spec-driven", "web-design-guidelines"],
+    "defaultRules": ["engineering-rules", "vue-rules"],
     "linterDependencies": ["eslint", "prettier", "eslint-plugin-vue"]
   }
 }
