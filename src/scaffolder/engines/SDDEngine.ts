@@ -31,6 +31,7 @@ export class SDDEngine {
       stackProviders,
       registry,
       basePath,
+      database,
       ruleTemplates
     );
 
@@ -70,6 +71,7 @@ export class SDDEngine {
     stackProviders: StackProvider[],
     registry: any,
     basePath: string,
+    databases?: string[],
     ruleTemplates?: Record<string, string>
   ): Promise<string> {
     let combinedContent = "";
@@ -104,6 +106,26 @@ export class SDDEngine {
         const overridePath = path.join(basePath, ruleTemplates[stack]);
         if (fs.existsSync(overridePath)) {
           combinedContent += fs.readFileSync(overridePath, "utf-8") + "\n\n";
+        }
+      }
+    }
+
+    // Provision Database Specific Rules
+    const activeDbs = databases || [];
+    for (const db of activeDbs) {
+      const dbDef = registry.databases[db];
+      if (!dbDef) continue;
+
+      console.log(chalk.blue(`\n📥 Provisioning Rules for database [${db}]...`));
+
+      if (dbDef.defaultRules) {
+        for (const ruleId of dbDef.defaultRules) {
+          if (ruleId === baseRuleId) continue;
+          const ruleDef = registry.rules[ruleId];
+          if (ruleDef) {
+            await this.provisioner.provision(ruleId, ruleDef, targetDir, rulesDestDir, basePath);
+            combinedContent += this.readProvisionedRule(rulesDestDir, ruleId);
+          }
         }
       }
     }

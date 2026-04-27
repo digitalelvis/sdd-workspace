@@ -4,6 +4,8 @@ export type ResourceType = "skill" | "rule";
 export interface ResourceDefinition {
   resource: ResourceType;
   mode: SkillStrategyMode;
+  provider?: string;
+  categories?: string[];
   roles: string[];
   command?: string;   // Used when mode === 'cli'
   url?: string;       // Used when mode === 'remote' or 'git'
@@ -29,10 +31,19 @@ export interface IdeDefinition {
   files?: Array<{ template: string; target: string }>;
 }
 
+export interface DatabaseDefinition {
+  displayName: string;
+  defaultRules?: string[];
+  defaultSkills?: string[];
+  detectionFiles?: string[];
+  detectionDeps?: string[];
+}
+
 export interface SkillRegistryCatalog {
   skills: Record<string, ResourceDefinition>;
   rules: Record<string, ResourceDefinition>;
   stacks: Record<string, StackDefinition>;
   agents: Record<string, AgentDefinition>;
   ides: Record<string, IdeDefinition>;
+  databases: Record<string, DatabaseDefinition>;
 }

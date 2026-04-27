@@ -10,6 +10,8 @@ import { IdeEnvironment } from "../../../domain/enums/IdeEnvironment";
 import { SupportedDatabase } from "../../../domain/enums/SupportedDatabase";
 import { SupportedStack } from "../../../domain/enums/SupportedStack";
 
+import { RegistryLoader } from "../../../resources/RegistryLoader";
+
 export interface InitOptions {
   ide?: string;
   agents?: string;
@@ -26,6 +28,7 @@ export async function initAction(options: InitOptions): Promise<void> {
   const targetDir = process.cwd();
   const resolver = new ConfigResolver();
   const orchestrator = new WorkspaceService();
+  const registry = RegistryLoader.load();
 
   // 1. Parse CLI agent flags
   let cliAgents: AiAgent[] = [];
@@ -42,7 +45,7 @@ export async function initAction(options: InitOptions): Promise<void> {
 
   // 2. Initial Analyzers (Internal)
   const detectedStacks = detectFramework(targetDir);
-  const detectedDbs = detectDatabase(targetDir);
+  const detectedDbs = detectDatabase(targetDir, registry.databases);
   const detectedSecurity = detectSecurity(targetDir);
 
   // 3. Interactive prompt logic

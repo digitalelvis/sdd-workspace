@@ -52,5 +52,11 @@
     "mode": "local",
     "path": "rules/vue-rules.md",
     "roles": ["frontend"]
+  },
+  "postgres-rules": {
+    "resource": "rule",
+    "mode": "local",
+    "path": "rules/postgres-rules.md",
+    "roles": ["backend"]
   }
 }

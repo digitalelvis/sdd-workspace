@@ -112,5 +112,77 @@
     "url": "https://github.com/vercel-labs/agent-skills",
     "subpath": "skills/web-design-guidelines",
     "roles": ["frontend"]
+  },
+  "mongodb-connection": {
+    "resource": "skill",
+    "provider": "mongodb",
+    "categories": ["database"],
+    "mode": "git",
+    "url": "https://github.com/mongodb/agent-skills",
+    "subpath": "skills/mongodb-connection",
+    "roles": ["backend"]
+  },
+  "atlas-stream-processing": {
+    "resource": "skill",
+    "provider": "mongodb",
+    "categories": ["database"],
+    "mode": "git",
+    "url": "https://github.com/mongodb/agent-skills",
+    "subpath": "skills/atlas-stream-processing",
+    "roles": ["backend"]
+  },
+  "mongodb-natural-language-querying": {
+    "resource": "skill",
+    "provider": "mongodb",
+    "categories": ["database"],
+    "mode": "git",
+    "url": "https://github.com/mongodb/agent-skills",
+    "subpath": "skills/mongodb-natural-language-querying",
+    "roles": ["backend"]
+  },
+  "mongodb-query-optimizer": {
+    "resource": "skill",
+    "provider": "mongodb",
+    "categories": ["database"],
+    "mode": "git",
+    "url": "https://github.com/mongodb/agent-skills",
+    "subpath": "skills/mongodb-query-optimizer",
+    "roles": ["backend"]
+  },
+  "mongodb-schema-design": {
+    "resource": "skill",
+    "provider": "mongodb",
+    "categories": ["database"],
+    "mode": "git",
+    "url": "https://github.com/mongodb/agent-skills",
+    "subpath": "skills/mongodb-schema-design",
+    "roles": ["backend"]
+  },
+  "mongodb-search-and-ai": {
+    "resource": "skill",
+    "provider": "mongodb",
+    "categories": ["database"],
+    "mode": "git",
+    "url": "https://github.com/mongodb/agent-skills",
+    "subpath": "skills/mongodb-search-and-ai",
+    "roles": ["backend"]
+  },
+  "supabase-postgres-best-practices": {
+    "resource": "skill",
+    "provider": "supabase",
+    "categories": ["database"],
+    "mode": "git",
+    "url": "https://github.com/supabase/agent-skills",
+    "subpath": "skills/supabase-postgres-best-practices",
+    "roles": ["backend"]
+  },
+  "supabase": {
+    "resource": "skill",
+    "provider": "supabase",
+    "categories": ["database"],
+    "mode": "git",
+    "url": "https://github.com/supabase/agent-skills",
+    "subpath": "skills/supabase",
+    "roles": ["backend"]
   }
 }

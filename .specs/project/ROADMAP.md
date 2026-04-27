@@ -12,6 +12,7 @@
 ## 0.1.2: Scalable Architecture & Stability
 
 ### Registry & Rules (Completed)
+
 - [x] **Registry-Driven Providers**: Move IDE and Agent metadata to `registry.json`.
 - [x] **Generic Engines**: Refactor `EcosystemEngine` and `SDDEngine` to use registry data.
 - [x] **Rules SSOT**: Centralize rules in `.agents/rules/` for all agents.
@@ -22,13 +23,28 @@
 - [x] **Advanced Rule Composition**: Support for modular rules and multi-rule injection.
 
 ### Concerns Resolution (Completed)
+
 - [x] **Centralized Versioning**: Sync package.json version with CLI and generated configs.
 - [x] **Unified Resource Resolution**: Centralize resource path logic in `ResourcePathUtils`.
 - [x] **Analyzer Expansion**: Add support for Python, PHP, Laravel, and Vue detection.
 - [x] **Engine Refactoring**: Extract resource provisioning logic into `ResourceProvisioner`.
 - [x] **Workspace Validation**: Implement environment integrity checks.
 
+### CI/CD & Security (Pending)
 
+- [ ] **Advanced CI/CD Orchestration**: Implement `release.yml` and `check-ci-status` patterns for version automation and gating.
+- [ ] **Automated Security Guardrails**: Add `security-scan` capabilities with PR commenting and notification integration.
+- [ ] **SDD Integrity Validation**: Implement `validate-skills` action to ensure workspace compliance.
+
+### Architectural Refinement (Pending)
+
+- [x] **Database Registry**: Extract `SupportedDatabase` logic to a modular `databases.json` registry.
+- [ ] **Tools & Concerns Registry**: Modularize Lint, CI/CD, and Security tools into a dedicated registry.
+- [ ] **Context-Aware Init**: Refactor `init` command to suggest tools based on detected Stack + Database.
+- [ ] **Git Strategy & Workflow Selection**: Implement interactive selection for Git Flow variants and conditional CI/CD workflows (Husky, Commitlint, Storybook, etc.).
+- [ ] **Integrity First (No-Overwrite)**: Ensure `init` never overwrites existing configurations and only prompts for missing components.
+- [ ] **Find Skills**: Implement `find-skills` command to find skills by provider, category, or name.
+- [ ] **defaultSkillsProviders**: Implement defaultSkillsProviders in databases.json and stacks.json using Find Skills to install.
 
 ## 0.1.3: Expansion
 

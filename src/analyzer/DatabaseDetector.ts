@@ -1,53 +1,36 @@
 import fs from "fs";
 import path from "path";
 import { SupportedDatabase } from "../domain/enums/SupportedDatabase";
+import { DatabaseDefinition } from "../domain/contracts/SkillRegistry";
 
-export function detectDatabase(targetDir: string): SupportedDatabase[] {
+export function detectDatabase(targetDir: string, databaseRegistry: Record<string, DatabaseDefinition>): SupportedDatabase[] {
   const pkgPath = path.join(targetDir, "package.json");
   const detected: SupportedDatabase[] = [];
 
-  if (!fs.existsSync(pkgPath)) return detected;
+  const pkgExists = fs.existsSync(pkgPath);
+  let deps: Record<string, string> = {};
 
-  try {
-    const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8"));
-    const deps = { ...pkg.dependencies, ...pkg.devDependencies };
+  if (pkgExists) {
+    try {
+      const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8"));
+      deps = { ...pkg.dependencies, ...pkg.devDependencies };
+    } catch (e) {
+      // Ignore parse errors
+    }
+  }
 
-    // PostgreSQL
-    if (deps["pg"] || deps["postgres"] || deps["@prisma/client"]?.includes("postgresql")) {
-      detected.push(SupportedDatabase.POSTGRES);
+  for (const [id, def] of Object.entries(databaseRegistry)) {
+    // Check by Dependencies
+    if (def.detectionDeps && def.detectionDeps.some(dep => deps[dep])) {
+      detected.push(id as SupportedDatabase);
+      continue;
     }
 
-    // MongoDB
-    if (deps["mongodb"] || deps["mongoose"]) {
-      detected.push(SupportedDatabase.MONGODB);
+    // Check by Files
+    if (def.detectionFiles && def.detectionFiles.some(file => fs.existsSync(path.join(targetDir, file)))) {
+      detected.push(id as SupportedDatabase);
+      continue;
     }
-
-    // MySQL
-    if (deps["mysql"] || deps["mysql2"]) {
-      detected.push(SupportedDatabase.MYSQL);
-    }
-
-    // SQLite
-    if (deps["sqlite3"] || deps["better-sqlite3"]) {
-      detected.push(SupportedDatabase.SQLITE);
-    }
-
-    // Redis
-    if (deps["redis"] || deps["ioredis"]) {
-      detected.push(SupportedDatabase.REDIS);
-    }
-
-    // Supabase
-    if (deps["@supabase/supabase-js"]) {
-      detected.push(SupportedDatabase.SUPABASE);
-    }
-
-    // Firebase
-    if (deps["firebase"] || deps["firebase-admin"]) {
-      detected.push(SupportedDatabase.FIREBASE);
-    }
-  } catch (e) {
-    // Silent fail
   }
 
   return Array.from(new Set(detected));
