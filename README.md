@@ -87,6 +87,7 @@ npm run sdd -- init
 | `sdd apply`                   | Synchronizes the workspace with current `sdd.config.json` rules.   |
 | `sdd config list`             | Lists all global configurations in `~/.sddrc.json`.                 |
 | `sdd config set <path> <val>` | Sets a global value (e.g., `sdd config set defaults.ide vscode`). |
+| `sdd find-skills`             | Search the registry for available AI skills by provider or category. |
 | `sdd add --skill <name>`      | (Beta) Adds a specific skill via registry.                         |
 
 ---
