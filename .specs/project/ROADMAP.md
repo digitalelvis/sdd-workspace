@@ -43,8 +43,8 @@
 - [ ] **Context-Aware Init**: Refactor `init` command to suggest tools based on detected Stack + Database.
 - [ ] **Git Strategy & Workflow Selection**: Implement interactive selection for Git Flow variants and conditional CI/CD workflows (Husky, Commitlint, Storybook, etc.).
 - [ ] **Integrity First (No-Overwrite)**: Ensure `init` never overwrites existing configurations and only prompts for missing components.
-- [ ] **Find Skills**: Implement `find-skills` command to find skills by provider, category, or name.
-- [ ] **defaultSkillsProviders**: Implement defaultSkillsProviders in databases.json and stacks.json using Find Skills to install.
+- [x] **Find Skills**: Implement `find-skills` command to find skills by provider, category, or name.
+- [x] **defaultSkillsProviders**: Implement defaultSkillsProviders in databases.json and stacks.json using Find Skills to install.
 
 ## 0.1.3: Expansion
 
@@ -63,5 +63,5 @@
 ## Status Tracking
 
 - **Current Version**: 0.1.2
-- **Last Achievement**: Modular Rules Engine & SDDEngine Refactor.
+- **Last Achievement**: Implemented `find-skills` CLI command.
 - **Next Milestone**: `add` command & Multi-provider support.

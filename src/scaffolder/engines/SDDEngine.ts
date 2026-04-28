@@ -6,6 +6,7 @@ import { AiAgent } from "../../domain/enums/AiAgent";
 import { RegistryLoader } from "../../resources/RegistryLoader";
 import { ResourcePathUtils } from "../../utils/ResourcePathUtils";
 import { ResourceProvisioner } from "./ResourceProvisioner";
+import { SkillService } from "../../resources/SkillService";
 
 /**
  * SDDEngine — Orchestrates the injection of rules, skills, and agent configs.
@@ -18,13 +19,16 @@ export class SDDEngine {
     stackProviders: StackProvider[],
     selectedAgents: AiAgent[],
     skillsToInject: string[],
-    ruleTemplates?: Record<string, string>,
     database?: string[],
-    security?: string[]
+    ruleTemplates?: Record<string, string>
   ): Promise<void> {
     const { basePath, registry, rulesDestDir, agentsSkillsDestDir } = this.initializeContext(targetDir);
+    const skillService = new SkillService(registry);
 
-    // 1. Provision and Combine Rules Content
+    // 1. Resolve all Skills (Explicit + Stack Defaults + Database Defaults + Provider Discovery)
+    const allSkills = this.resolveAllSkills(skillsToInject, stackProviders, database, registry, skillService);
+
+    // 2. Provision and Combine Rules Content
     const fullRuleContent = await this.provisionAndComposeRules(
       targetDir,
       rulesDestDir,
@@ -35,21 +39,58 @@ export class SDDEngine {
       ruleTemplates
     );
 
-    // 2. Configure AI Agents with Rules
+    // 3. Configure AI Agents with Rules
     this.configureAgents(targetDir, selectedAgents, registry, fullRuleContent);
 
-    // 3. Provision Specialized Skills
-    await this.provisionSkills(targetDir, skillsToInject, registry, agentsSkillsDestDir, basePath);
+    // 4. Provision Specialized Skills
+    await this.provisionSkills(targetDir, allSkills, registry, agentsSkillsDestDir, basePath);
 
-    // 4. Generate Orchestration Documentation
+    // 5. Generate Orchestration Documentation
     await this.generateAgentMd(targetDir, basePath, {
       stacks: stackProviders.map(p => p.stack),
       databases: database || [],
       agents: selectedAgents,
-      skills: skillsToInject
+      skills: allSkills
     });
 
     console.log(chalk.green(`✔️  Injected living SDD document schemas successfully.`));
+  }
+
+  private resolveAllSkills(
+    explicit: string[],
+    stacks: StackProvider[],
+    databases: string[] | undefined,
+    registry: any,
+    skillService: SkillService
+  ): string[] {
+    const skillSet = new Set<string>(explicit);
+    const providers = new Set<string>();
+
+    // From Stacks
+    for (const stack of stacks) {
+      const stackDef = registry.stacks[stack.stack];
+      if (stackDef) {
+        (stackDef.defaultSkills || []).forEach((s: string) => skillSet.add(s));
+        (stackDef.defaultSkillsProviders || []).forEach((p: string) => providers.add(p));
+      }
+    }
+
+    // From Databases
+    if (databases) {
+      for (const db of databases) {
+        const dbDef = registry.databases[db];
+        if (dbDef) {
+          (dbDef.defaultSkills || []).forEach((s: string) => skillSet.add(s));
+          (dbDef.defaultSkillsProviders || []).forEach((p: string) => providers.add(p));
+        }
+      }
+    }
+
+    // Resolve from providers
+    const providerSkills = skillService.resolveFromProviders(Array.from(providers));
+    providerSkills.forEach((s: string) => skillSet.add(s));
+
+    return Array.from(skillSet);
   }
 
   private initializeContext(targetDir: string) {

@@ -48,9 +48,8 @@ export class WorkspaceService {
         stackProviders,
         agents,
         skillsToInject,
-        resolved.ruleTemplates,
         resolved.database,
-        resolved.security
+        resolved.ruleTemplates
       );
 
       // 4. Ensure gitignore has correct AI workspace rules

@@ -21,6 +21,7 @@
 - [x] Expand `framework-detector.ts` for multi-stack support.
 - [x] Refactor `SDDEngine` to use `ResourceProvisioner`.
 - [x] Add workspace validation checks.
+- [x] Implement `find-skills` CLI command.
 
 
 ### Deferred Ideas
