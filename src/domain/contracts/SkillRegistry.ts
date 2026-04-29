@@ -50,6 +50,13 @@ export interface ToolDefinition {
   recommendedStacks?: string[];
 }
 
+export interface GitStrategyDefinition {
+  displayName: string;
+  description: string;
+  defaultRules?: string[];
+  defaultSkills?: string[];
+}
+
 export interface SkillRegistryCatalog {
   skills: Record<string, ResourceDefinition>;
   rules: Record<string, ResourceDefinition>;
@@ -58,4 +65,5 @@ export interface SkillRegistryCatalog {
   ides: Record<string, IdeDefinition>;
   databases: Record<string, DatabaseDefinition>;
   tools?: Record<string, ToolDefinition>;
+  gitStrategies?: Record<string, GitStrategyDefinition>;
 }

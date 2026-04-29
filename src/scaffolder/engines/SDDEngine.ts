@@ -20,7 +20,8 @@ export class SDDEngine {
     selectedAgents: AiAgent[],
     skillsToInject: string[],
     database?: string[],
-    ruleTemplates?: Record<string, string>
+    ruleTemplates?: Record<string, string>,
+    gitStrategy?: string
   ): Promise<void> {
     const { basePath, registry, rulesDestDir, agentsSkillsDestDir } = this.initializeContext(targetDir);
     const skillService = new SkillService(registry);
@@ -36,7 +37,8 @@ export class SDDEngine {
       registry,
       basePath,
       database,
-      ruleTemplates
+      ruleTemplates,
+      gitStrategy
     );
 
     // 3. Configure AI Agents with Rules
@@ -113,7 +115,8 @@ export class SDDEngine {
     registry: any,
     basePath: string,
     databases?: string[],
-    ruleTemplates?: Record<string, string>
+    ruleTemplates?: Record<string, string>,
+    gitStrategy?: string
   ): Promise<string> {
     let combinedContent = "";
     
@@ -161,6 +164,23 @@ export class SDDEngine {
 
       if (dbDef.defaultRules) {
         for (const ruleId of dbDef.defaultRules) {
+          if (ruleId === baseRuleId) continue;
+          const ruleDef = registry.rules[ruleId];
+          if (ruleDef) {
+            await this.provisioner.provision(ruleId, ruleDef, targetDir, rulesDestDir, basePath);
+            combinedContent += this.readProvisionedRule(rulesDestDir, ruleId);
+          }
+        }
+      }
+    }
+
+    // Append Git Strategy
+    if (gitStrategy && registry.gitStrategies?.[gitStrategy]) {
+      const gitDef = registry.gitStrategies[gitStrategy];
+      console.log(chalk.blue(`\n📥 Provisioning Git Strategy [${gitDef.displayName}]...`));
+
+      if (gitDef.defaultRules) {
+        for (const ruleId of gitDef.defaultRules) {
           if (ruleId === baseRuleId) continue;
           const ruleDef = registry.rules[ruleId];
           if (ruleDef) {

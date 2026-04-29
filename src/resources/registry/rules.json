@@ -58,5 +58,23 @@
     "mode": "local",
     "path": "rules/postgres-rules.md",
     "roles": ["backend"]
+  },
+  "git-github-flow": {
+    "resource": "rule",
+    "mode": "local",
+    "path": "rules/git/github-flow.md",
+    "roles": ["ai", "human"]
+  },
+  "git-git-flow": {
+    "resource": "rule",
+    "mode": "local",
+    "path": "rules/git/git-flow.md",
+    "roles": ["ai", "human"]
+  },
+  "git-jira-flow": {
+    "resource": "rule",
+    "mode": "local",
+    "path": "rules/git/jira-flow.md",
+    "roles": ["ai", "human"]
   }
 }

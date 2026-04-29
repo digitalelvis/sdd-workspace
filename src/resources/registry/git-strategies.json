@@ -1,0 +1,17 @@
+{
+  "github-flow": {
+    "displayName": "GitHub Flow (Agile/CD)",
+    "description": "Short-lived feature branches, direct merge to main via PR.",
+    "defaultRules": ["git-github-flow"]
+  },
+  "git-flow": {
+    "displayName": "Git Flow (Structured/Release)",
+    "description": "develop and main branches, with feature/, release/, and hotfix/ prefixes.",
+    "defaultRules": ["git-git-flow"]
+  },
+  "jira-flow": {
+    "displayName": "Jira-Driven Environment Flow (Enterprise)",
+    "description": "Branch names prefixed with Jira IDs (e.g., PROJ-123-feat).",
+    "defaultRules": ["git-jira-flow"]
+  }
+}
