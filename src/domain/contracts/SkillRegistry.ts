@@ -39,6 +39,17 @@ export interface DatabaseDefinition {
   detectionDeps?: string[];
 }
 
+export interface ToolDefinition {
+  type: string;
+  displayName: string;
+  defaultSkills?: string[];
+  defaultSkillsProviders?: string[];
+  defaultRules?: string[];
+  configFiles: string[];
+  dependencies: string[];
+  recommendedStacks?: string[];
+}
+
 export interface SkillRegistryCatalog {
   skills: Record<string, ResourceDefinition>;
   rules: Record<string, ResourceDefinition>;
@@ -46,4 +57,5 @@ export interface SkillRegistryCatalog {
   agents: Record<string, AgentDefinition>;
   ides: Record<string, IdeDefinition>;
   databases: Record<string, DatabaseDefinition>;
+  tools?: Record<string, ToolDefinition>;
 }

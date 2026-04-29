@@ -39,6 +39,7 @@ export class ConfigResolver {
       security: cliFlags.security && cliFlags.security.length > 0 ? cliFlags.security : (local?.security || []),
       skills: { include: [], exclude: [], add: [] },
       linterDependencies: [],
+      resolvedTools: {},
       ruleTemplates: {},
     };
 
@@ -51,6 +52,19 @@ export class ConfigResolver {
     
     base.linterDependencies = stackTools;
     base.ruleTemplates = templates;
+
+    // Populate resolved tools metadata
+    if (registry.tools) {
+      for (const toolDep of stackTools) {
+        const toolName = toolDep.startsWith('@') 
+          ? toolDep.split('@').slice(0, 2).join('@') 
+          : toolDep.split('@')[0];
+          
+        if (registry.tools[toolName]) {
+          base.resolvedTools![toolName] = registry.tools[toolName];
+        }
+      }
+    }
 
     // 2. Apply Global Config (General settings)
     if (global) {

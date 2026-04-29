@@ -16,7 +16,8 @@ export class RegistryLoader {
       stacks: {},
       agents: {},
       ides: {},
-      databases: {}
+      databases: {},
+      tools: {}
     };
 
     try {
