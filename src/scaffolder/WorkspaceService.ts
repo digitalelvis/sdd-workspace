@@ -49,7 +49,8 @@ export class WorkspaceService {
         agents,
         skillsToInject,
         resolved.database,
-        resolved.ruleTemplates
+        resolved.ruleTemplates,
+        resolved.gitStrategy
       );
 
       // 4. Ensure gitignore has correct AI workspace rules

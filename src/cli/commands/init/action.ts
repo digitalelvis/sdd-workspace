@@ -16,6 +16,7 @@ export interface InitOptions {
   ide?: string;
   agents?: string;
   lint?: boolean;
+  gitStrategy?: string;
 }
 
 /**
@@ -126,8 +127,41 @@ export async function initAction(options: InitOptions): Promise<void> {
     interactiveDbs = dbAnswer.selectedDbs.includes(SupportedDatabase.NONE) ? [] : dbAnswer.selectedDbs;
   }
 
+  // 6. Handle Git Strategy
+  let interactiveGitStrategy = options.gitStrategy;
+  if (!interactiveGitStrategy && registry.gitStrategies) {
+    const gitOptions = Object.keys(registry.gitStrategies).map(key => {
+      const def = registry.gitStrategies![key];
+      return { name: def.displayName, value: key };
+    });
+
+    if (gitOptions.length > 0) {
+      const gitAnswer = await inquirer.prompt([
+        {
+          type: "list",
+          name: "gitStrategy",
+          message: "Which Git strategy does your team use?",
+          choices: [
+            { name: "None (Skip Git rules)", value: "none" },
+            new inquirer.Separator(),
+            ...gitOptions
+          ]
+        }
+      ]);
+      interactiveGitStrategy = gitAnswer.gitStrategy === "none" ? undefined : gitAnswer.gitStrategy;
+    }
+  }
+
   const resolved = resolver.resolve(
-    { agents: interactiveAgents, ide: interactiveIde, lint: options.lint, stacks: interactiveStacks, database: interactiveDbs, security: detectedSecurity },
+    { 
+      agents: interactiveAgents, 
+      ide: interactiveIde, 
+      lint: options.lint, 
+      stacks: interactiveStacks, 
+      database: interactiveDbs, 
+      security: detectedSecurity,
+      gitStrategy: interactiveGitStrategy 
+    },
     targetDir,
   );
 

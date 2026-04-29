@@ -17,6 +17,7 @@ export interface CliFlags {
   stacks?: SupportedStack[];
   database?: SupportedDatabase[];
   security?: string[];
+  gitStrategy?: string;
 }
 
 /**
@@ -37,6 +38,7 @@ export class ConfigResolver {
       stacks: cliFlags.stacks && cliFlags.stacks.length > 0 ? cliFlags.stacks : (local?.stacks || []),
       database: cliFlags.database && cliFlags.database.length > 0 ? cliFlags.database : (local?.database || []),
       security: cliFlags.security && cliFlags.security.length > 0 ? cliFlags.security : (local?.security || []),
+      gitStrategy: cliFlags.gitStrategy || local?.gitStrategy,
       skills: { include: [], exclude: [], add: [] },
       linterDependencies: [],
       resolvedTools: {},
@@ -139,6 +141,7 @@ export class ConfigResolver {
       lint: resolved.lint ?? true,
       database: resolved.database || [],
       security: resolved.security || [],
+      gitStrategy: resolved.gitStrategy,
       skills: {
         include: resolved.skills?.include || [],
         exclude: resolved.skills?.exclude || [],
@@ -181,6 +184,7 @@ export class ConfigResolver {
     if (local.stacks?.length) base.stacks = local.stacks;
     if (local.database?.length) base.database = local.database;
     if (local.security?.length) base.security = local.security;
+    if (local.gitStrategy) base.gitStrategy = local.gitStrategy;
   }
 
   private applyCliFlags(base: WorkspaceConfig, flags: CliFlags): void {
@@ -190,6 +194,7 @@ export class ConfigResolver {
     if (flags.stacks?.length) base.stacks = flags.stacks;
     if (flags.database?.length) base.database = flags.database;
     if (flags.security?.length) base.security = flags.security;
+    if (flags.gitStrategy) base.gitStrategy = flags.gitStrategy;
   }
 
   private mergeSkills(

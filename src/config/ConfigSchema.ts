@@ -38,6 +38,9 @@ export interface WorkspaceConfig {
   
   /** Mapping of rule templates for detected stacks */
   ruleTemplates?: Record<string, string>;
+
+  /** The selected Git workflow strategy */
+  gitStrategy?: string;
 }
 
 export interface LocalWorkspaceConfig extends WorkspaceConfig {

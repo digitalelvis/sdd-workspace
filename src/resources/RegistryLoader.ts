@@ -17,7 +17,8 @@ export class RegistryLoader {
       agents: {},
       ides: {},
       databases: {},
-      tools: {}
+      tools: {},
+      gitStrategies: {}
     };
 
     try {

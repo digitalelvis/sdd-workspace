@@ -31,3 +31,18 @@ The `WorkflowComposer` will assemble a `main.yml` (or similar) by combining:
 - Initialize a "React + Vitest" project.
 - Verify the generated CI workflow includes the `test` job with `npm run test`.
 - Verify the `security-scan` action is present in the workflow.
+
+## Draft Implementation Plan & Open Questions
+
+### Open Questions
+1. **YAML Composition Strategy**: Should we concatenate the YAML blocks as simple strings (which requires careful indentation handling) or use an AST parser (like the `yaml` package) to programmatically assemble the structure?
+2. **Generic Action Injections**: Should files like `release.yml` and `validate-skills.yml` be always injected across all generated workflows, or should they be conditionally activated based on the selected Git Strategy?
+3. **Refactoring Scope**: Should we entirely deprecate `CICDEngine.ts` or refactor it into an orchestrator that utilizes the new `WorkflowComposer`?
+
+### Draft Implementation Steps
+- **Step 1:** Create `WorkflowComposer.ts` to replace/augment `CICDEngine`.
+- **Step 2:** Scaffold the base modular templates inside `src/resources/templates/workflows/jobs/` (build, lint, test, security, integrity).
+- **Step 3:** Scaffold the action templates inside `src/resources/templates/actions/`.
+- **Step 4:** Implement the composition logic within `WorkflowComposer.ts`, dynamically reading `resolvedConfig.resolvedTools` to decide which jobs to append.
+- **Step 5:** Modify `WorkspaceService.ts` to trigger `WorkflowComposer` instead of the legacy `CICDEngine`.
+- **Step 6:** Add unit tests (`WorkflowComposer.spec.ts`) asserting correct conditional job assembly.
