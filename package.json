@@ -46,6 +46,8 @@
     "inquirer": "^9.2.12"
   },
   "devDependencies": {
+    "@commitlint/cli": "^20.5.3",
+    "@commitlint/config-conventional": "^20.5.3",
     "@release-it/conventional-changelog": "^8.0.1",
     "@types/inquirer": "^9.0.7",
     "@types/jest": "^29.5.12",
