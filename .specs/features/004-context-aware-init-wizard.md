@@ -1,5 +1,7 @@
 # Feature Spec: Context-Aware Init Wizard
 
+**Status**: Completed
+
 ## Goal
 Transform the `init` command into an intelligent, multi-step wizard that summarizes detection results and allows for granular, safe configuration.
 

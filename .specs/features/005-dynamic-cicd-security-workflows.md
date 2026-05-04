@@ -1,5 +1,7 @@
 # Feature Spec: Dynamic CI/CD & Security Workflows
 
+**Status**: Completed
+
 ## Goal
 Generate tailored GitHub Action workflows by composing modular templates based on the user's specific stack, database, and selected tools.
 

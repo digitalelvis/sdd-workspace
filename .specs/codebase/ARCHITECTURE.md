@@ -9,7 +9,7 @@
 ## Layers
 
 1. **CLI Layer (`src/cli`)**: Handles command registration, argument parsing, and user interaction (prompts).
-2. **Orchestration Layer (`src/scaffolder`)**: Contains the `WorkspaceService` and specialized `Engines` that coordinate the mapping of specs to files.
+2. **Orchestration Layer (`src/scaffolder`)**: Contains the `WorkspaceService` and specialized `Engines` like `WorkflowComposer` that coordinate the mapping of specs to files.
 3. **Domain Layer (`src/domain`)**: Defines the shared language of the system through Enums and Interfaces (Contracts).
 4. **Provider Layer (`src/scaffolder/providers`)**: Implementation-specific logic for different IDEs (VSCode, Cursor), Agents (Windsurf, etc.), and Tech Stacks.
 5. **Config Layer (`src/config`)**: Handles multi-layered configuration resolution (Default -> Global -> Local -> CLI).
