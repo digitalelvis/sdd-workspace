@@ -41,6 +41,9 @@ export interface WorkspaceConfig {
 
   /** The selected Git workflow strategy */
   gitStrategy?: string;
+
+  /** Whether to generate a GitHub Actions CI/CD workflow */
+  generateCICD?: boolean;
 }
 
 export interface LocalWorkspaceConfig extends WorkspaceConfig {

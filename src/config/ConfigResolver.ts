@@ -18,6 +18,7 @@ export interface CliFlags {
   database?: SupportedDatabase[];
   security?: string[];
   gitStrategy?: string;
+  generateCICD?: boolean;
 }
 
 /**
@@ -39,6 +40,7 @@ export class ConfigResolver {
       database: cliFlags.database && cliFlags.database.length > 0 ? cliFlags.database : (local?.database || []),
       security: cliFlags.security && cliFlags.security.length > 0 ? cliFlags.security : (local?.security || []),
       gitStrategy: cliFlags.gitStrategy || local?.gitStrategy,
+      generateCICD: cliFlags.generateCICD !== undefined ? cliFlags.generateCICD : local?.generateCICD,
       skills: { include: [], exclude: [], add: [] },
       linterDependencies: [],
       resolvedTools: {},
@@ -185,6 +187,7 @@ export class ConfigResolver {
     if (local.database?.length) base.database = local.database;
     if (local.security?.length) base.security = local.security;
     if (local.gitStrategy) base.gitStrategy = local.gitStrategy;
+    if (local.generateCICD !== undefined) base.generateCICD = local.generateCICD;
   }
 
   private applyCliFlags(base: WorkspaceConfig, flags: CliFlags): void {
@@ -195,6 +198,7 @@ export class ConfigResolver {
     if (flags.database?.length) base.database = flags.database;
     if (flags.security?.length) base.security = flags.security;
     if (flags.gitStrategy) base.gitStrategy = flags.gitStrategy;
+    if (flags.generateCICD !== undefined) base.generateCICD = flags.generateCICD;
   }
 
   private mergeSkills(

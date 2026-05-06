@@ -32,6 +32,7 @@
 
 ### CI/CD & Security (Pending)
 
+- [x] **Dynamic CI/CD Workflow Composer**: Implement `WorkflowComposer` to generate tailored GitHub Actions workflows based on selected tools (lint, test, build).
 - [ ] **Advanced CI/CD Orchestration**: Implement `release.yml` and `check-ci-status` patterns for version automation and gating.
 - [ ] **Automated Security Guardrails**: Add `security-scan` capabilities with PR commenting and notification integration.
 - [ ] **SDD Integrity Validation**: Implement `validate-skills` action to ensure workspace compliance.
@@ -39,10 +40,10 @@
 ### Architectural Refinement (Pending)
 
 - [x] **Database Registry**: Extract `SupportedDatabase` logic to a modular `databases.json` registry.
-- [ ] **Tools & Concerns Registry**: Modularize Lint, CI/CD, and Security tools into a dedicated registry.
-- [ ] **Context-Aware Init**: Refactor `init` command to suggest tools based on detected Stack + Database.
-- [ ] **Git Strategy & Workflow Selection**: Implement interactive selection for Git Flow variants and conditional CI/CD workflows (Husky, Commitlint, Storybook, etc.).
-- [ ] **Integrity First (No-Overwrite)**: Ensure `init` never overwrites existing configurations and only prompts for missing components.
+- [x] **Tools & Concerns Registry**: Modularize Lint, CI/CD, and Security tools into a dedicated registry.
+- [x] **Context-Aware Init**: Refactor `init` command to suggest tools based on detected Stack + Database.
+- [] **Git Strategy & Workflow Selection**: Implement interactive selection for Git Flow variants and conditional CI/CD workflows (Husky, Commitlint, Storybook, etc.).
+- [x] **Integrity First (No-Overwrite)**: Ensure `init` never overwrites existing configurations and only prompts for missing components.
 - [x] **Find Skills**: Implement `find-skills` command to find skills by provider, category, or name.
 - [x] **defaultSkillsProviders**: Implement defaultSkillsProviders in databases.json and stacks.json using Find Skills to install.
 
@@ -63,5 +64,5 @@
 ## Status Tracking
 
 - **Current Version**: 0.1.2
-- **Last Achievement**: Implemented `find-skills` CLI command.
-- **Next Milestone**: `add` command & Multi-provider support.
+- **Last Achievement**: Implemented dynamic CI/CD workflow composer (`WorkflowComposer`).
+- **Next Milestone**: Advanced CI/CD orchestration & security guardrails.

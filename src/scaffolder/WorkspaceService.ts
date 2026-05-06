@@ -16,12 +16,12 @@ import { ResourcePathUtils } from "../utils/ResourcePathUtils";
 // Engines
 import { SDDEngine } from "./engines/SDDEngine";
 import { EcosystemEngine } from "./engines/EcosystemEngine";
-import { CICDEngine } from "./engines/CICDEngine";
+import { WorkflowComposer } from "./engines/WorkflowComposer";
 
 export class WorkspaceService {
   private readonly ecosystemEngine = new EcosystemEngine();
   private readonly sddEngine = new SDDEngine();
-  private readonly cicdEngine = new CICDEngine();
+  private readonly workflowComposer = new WorkflowComposer();
 
   /**
    * Execute the full workspace provisioning pipeline.
@@ -64,8 +64,9 @@ export class WorkspaceService {
       }
 
       // 6. Provision CI/CD
-      const basePath = ResourcePathUtils.getResourcesPath();
-      this.cicdEngine.setup(targetDir, basePath, stacks);
+      if (resolved.generateCICD) {
+        this.workflowComposer.compose(targetDir, resolved);
+      }
     } catch (error) {
       console.error(chalk.red("\n❌ Critical Exception during Injection:"), error);
     }

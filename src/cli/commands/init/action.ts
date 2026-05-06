@@ -187,6 +187,16 @@ export async function initAction(options: InitOptions): Promise<void> {
     }
   }
 
+  // Step 3.5: CI/CD Selection
+  const cicdAnswer = await inquirer.prompt([
+    {
+      type: "confirm",
+      name: "generateCICD",
+      message: "Do you want to generate a GitHub Actions CI/CD workflow?",
+      default: true
+    }
+  ]);
+
   // Step 4: Final Injection Summary and Confirmation
   console.log(chalk.cyan.bold("\n📋 Injection Summary:"));
   console.log(chalk.white(`- IDE: ${interactiveIde || "none"}`));
@@ -195,7 +205,8 @@ export async function initAction(options: InitOptions): Promise<void> {
   console.log(chalk.white(`- Databases: ${interactiveDbs.length > 0 ? interactiveDbs.join(", ") : "none"}`));
   console.log(chalk.white(`- Security: ${detectedSecurity.length > 0 ? detectedSecurity.join(", ") : "none"}`));
   console.log(chalk.white(`- Tools: ${allSelectedTools.length > 0 ? allSelectedTools.join(", ") : "none"}`));
-  console.log(chalk.white(`- Git Strategy: ${interactiveGitStrategy || "none"}\n`));
+  console.log(chalk.white(`- Git Strategy: ${interactiveGitStrategy || "none"}`));
+  console.log(chalk.white(`- CI/CD Generation: ${cicdAnswer.generateCICD ? "yes" : "no"}\n`));
 
   const finalConfirm = await inquirer.prompt([
     {
@@ -219,7 +230,8 @@ export async function initAction(options: InitOptions): Promise<void> {
       stacks: interactiveStacks, 
       database: interactiveDbs, 
       security: detectedSecurity,
-      gitStrategy: interactiveGitStrategy 
+      gitStrategy: interactiveGitStrategy,
+      generateCICD: cicdAnswer.generateCICD
     },
     targetDir,
   );
