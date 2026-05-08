@@ -1,0 +1,43 @@
+{
+  "postgres": {
+    "displayName": "PostgreSQL",
+    "defaultRules": ["engineering-rules", "postgres-rules"],
+    "defaultSkills": ["postgres-best-practices"],
+    "detectionDeps": ["pg", "postgres", "@prisma/client", "sequelize", "typeorm"],
+    "detectionFiles": ["prisma/schema.prisma"]
+  },
+  "mongodb": {
+    "displayName": "MongoDB",
+    "defaultRules": ["engineering-rules", "mongodb-rules"],
+    "defaultSkills": ["nosql-expert"],
+    "defaultSkillsProviders": ["mongodb"],
+    "detectionDeps": ["mongodb", "mongoose"]
+  },
+  "mysql": {
+    "displayName": "MySQL",
+    "defaultRules": ["engineering-rules", "mysql-rules"],
+    "detectionDeps": ["mysql", "mysql2", "sequelize", "typeorm"]
+  },
+  "sqlite": {
+    "displayName": "SQLite",
+    "defaultRules": ["engineering-rules", "sqlite-rules"],
+    "detectionDeps": ["sqlite3", "better-sqlite3"]
+  },
+  "redis": {
+    "displayName": "Redis",
+    "defaultRules": ["engineering-rules", "redis-rules"],
+    "detectionDeps": ["redis", "ioredis"]
+  },
+  "supabase": {
+    "displayName": "Supabase",
+    "defaultRules": ["engineering-rules", "supabase-rules"],
+    "defaultSkills": ["supabase-best-practices"],
+    "defaultSkillsProviders": ["supabase"],
+    "detectionDeps": ["@supabase/supabase-js"]
+  },
+  "firebase": {
+    "displayName": "Firebase",
+    "defaultRules": ["engineering-rules", "firebase-rules"],
+    "detectionDeps": ["firebase", "firebase-admin"]
+  }
+}

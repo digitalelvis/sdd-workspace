@@ -5,6 +5,8 @@ import { AiAgent } from "../../../src/domain/enums/AiAgent";
 import { WorkspaceConfig } from "../../../src/config/ConfigSchema";
 
 jest.mock("fs");
+jest.mock("../../../src/resources/RegistryLoader");
+import { RegistryLoader } from "../../../src/resources/RegistryLoader";
 
 describe("Scaffolder - WorkspaceService", () => {
   let stdoutSpy: jest.SpyInstance;
@@ -14,6 +16,23 @@ describe("Scaffolder - WorkspaceService", () => {
     stdoutSpy = jest.spyOn(console, "log").mockImplementation();
     stderrSpy = jest.spyOn(console, "error").mockImplementation();
     jest.clearAllMocks();
+    (RegistryLoader.load as jest.Mock).mockReturnValue({
+      stacks: {
+        "nodejs": {
+          "defaultSkills": ["tlc-spec-driven"],
+          "ruleTemplateFile": "rules/node-rules.md",
+          "linterDependencies": ["eslint"]
+        }
+      },
+      skills: {},
+      agents: {
+        "cursor": {
+          "ruleFile": ".cursorrules",
+          "strategy": "reference"
+        }
+      },
+      ides: {}
+    });
   });
 
   afterEach(() => {

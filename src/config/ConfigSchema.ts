@@ -1,5 +1,7 @@
 import { AiAgent } from "../domain/enums/AiAgent";
 import { SupportedStack } from "../domain/enums/SupportedStack";
+import { SupportedDatabase } from "../domain/enums/SupportedDatabase";
+import { ToolDefinition } from "../domain/contracts/SkillRegistry";
 
 export interface SkillsConfig {
   include?: string[];
@@ -21,16 +23,27 @@ export interface WorkspaceConfig {
   agents?: AiAgent[];
   ide?: string;
   lint?: boolean;
+  database?: SupportedDatabase[];
+  security?: string[];
   skills?: SkillsConfig;
   
-  /** 
+  /**
    * Internal resolved field for ecosystem tools.
-   * Not typically persisted in sdd.config.json, but used during runtime.
+   * Not persisted in sdd.yml — used only during runtime resolution.
    */
   linterDependencies?: string[];
   
+  /** Metadata of the resolved tools mapped by their registry key */
+  resolvedTools?: Record<string, ToolDefinition>;
+  
   /** Mapping of rule templates for detected stacks */
   ruleTemplates?: Record<string, string>;
+
+  /** The selected Git workflow strategy */
+  gitStrategy?: string;
+
+  /** Whether to generate a GitHub Actions CI/CD workflow */
+  generateCICD?: boolean;
 }
 
 export interface LocalWorkspaceConfig extends WorkspaceConfig {

@@ -26,9 +26,9 @@ Adopt a **4-layer hierarchical configuration system** with merge semantics:
 ```
 Built-in Defaults  (src/config/defaults.ts)
     ↓ overridden by
-Global Config      (~/.sddrc.json)
+Global Config      (~/.sddrc.yml)
     ↓ overridden by
-Local Config       (./sdd.config.json)
+Local Config       (./sdd.yml)
     ↓ overridden by
 CLI Flags          (Commander options at runtime)
 ```
@@ -56,14 +56,15 @@ final_skills = (localInclude || stackDefaults) ∪ globalAdd ∪ localAdd − lo
 ## Consequences
 
 ### Positive
-- **Reproducibility**: Committing `sdd.config.json` captures the exact workspace intent — any team member running `sdd apply` gets the same result.
-- **Developer ergonomics**: Global `~/.sddrc.json` eliminates repetitive prompts for personal preferences.
+- **Reproducibility**: Committing `sdd.yml` captures the exact workspace intent — any team member running `sdd apply` gets the same result.
+- **Developer ergonomics**: Global `~/.sddrc.yml` eliminates repetitive prompts for personal preferences.
 - **Engine isolation**: `SDDEngine` and `EcosystemEngine` remain unchanged — they receive resolved lists, not config objects.
-- **Extensible**: `ResourceType` enum in `SkillRegistry.ts` allows future resources (tools, templates) to be managed through the same config surface area.
+- **Extensible**: `ResourceType` enum (`domain/enums/ResourceType.ts`) enables the unified `find` command to search both skills and rules without duplicating logic.
+- **Human-readable config**: YAML is friendlier to hand-edit than JSON; all YAML I/O is centralised in `YamlParser` (SRP).
 
 ### Negative / Risks
 - **New concept to learn**: Developers need to understand the 4-layer precedence.
-- **Config drift**: Manual edits to `sdd.config.json` that diverge from installed state need `sdd apply` to re-sync.
+- **Config drift**: Manual edits to `sdd.yml` that diverge from installed state need `sdd apply` to re-sync.
 
 ---
 
@@ -73,5 +74,5 @@ final_skills = (localInclude || stackDefaults) ∪ globalAdd ∪ localAdd − lo
 |---|---|
 | Single flat config (no layers) | No way to separate personal preferences from project intent |
 | cosmiconfig library | Extra dependency; our schema is simple enough to hand-roll |
-| YAML format | JSON is already parsed natively by Node; adding YAML requires a dep |
+| JSON format | Chosen YAML via `js-yaml` — more human-readable and consistent with CI/CD tooling; `YamlParser` isolates the dependency (SRP) |
 | Merge into `package.json` | Conflates project metadata with workspace management config |

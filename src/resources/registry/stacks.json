@@ -1,0 +1,49 @@
+{
+  "nodejs": {
+    "defaultSkills": ["spec-driven", "nodejs-best-practices"],
+    "defaultRules": ["engineering-rules", "node-rules"],
+    "linterDependencies": ["eslint@8.56.0", "prettier@3.1.0"]
+  },
+  "react": {
+    "defaultSkills": ["spec-driven", "react-best-practices", "react-ui-patterns"],
+    "defaultRules": ["engineering-rules", "react-rules"],
+    "linterDependencies": [
+      "eslint@8.56.0",
+      "prettier@3.1.0",
+      "eslint-plugin-react",
+      "eslint-plugin-react-hooks",
+      "@typescript-eslint/parser",
+      "@typescript-eslint/eslint-plugin"
+    ]
+  },
+  "nextjs": {
+    "defaultSkills": ["spec-driven", "nextjs-best-practices", "deploy-to-vercel", "web-design-guidelines"],
+    "defaultRules": ["engineering-rules", "next-rules"],
+    "linterDependencies": ["eslint@8.56.0", "prettier@3.1.0", "eslint-config-next"]
+  },
+  "ai-generic": {
+    "defaultSkills": ["spec-driven", "clean-code", "architect-review"],
+    "defaultRules": ["engineering-rules"],
+    "linterDependencies": []
+  },
+  "python": {
+    "defaultSkills": ["spec-driven"],
+    "defaultRules": ["engineering-rules", "python-rules"],
+    "linterDependencies": ["flake8", "black"]
+  },
+  "php": {
+    "defaultSkills": ["spec-driven"],
+    "defaultRules": ["engineering-rules", "php-rules"],
+    "linterDependencies": ["php-cs-fixer"]
+  },
+  "laravel": {
+    "defaultSkills": ["spec-driven"],
+    "defaultRules": ["engineering-rules", "laravel-rules"],
+    "linterDependencies": ["php-cs-fixer", "tightenco/ziggy"]
+  },
+  "vue": {
+    "defaultSkills": ["spec-driven", "web-design-guidelines"],
+    "defaultRules": ["engineering-rules", "vue-rules"],
+    "linterDependencies": ["eslint", "prettier", "eslint-plugin-vue"]
+  }
+}

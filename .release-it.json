@@ -17,7 +17,7 @@
         "types": [
           { "type": "feat", "section": "🚀 Features" },
           { "type": "fix", "section": "🩹 Fixes" },
-          { "type": "refactor", "section": "💅 Refactors" },
+          { "type": "refactor", "section": "✨ Refactors" },
           { "type": "docs", "section": "📖 Documentation" },
           { "type": "chore", "hidden": true },
           { "type": "test", "hidden": true }

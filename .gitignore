@@ -25,34 +25,6 @@ coverage/
 .nyc_output/
 
 # ==========================================
-# AI Agent Cache & Session State (ephemeral, personal — do NOT commit)
-# Rationale: These are IDE/agent internal state files, not project artifacts.
-# They may contain workspace paths, session tokens, or local machine data.
-# ==========================================
-.cursor/
-.windsurf/
-.vscode/
-.claude/
-.antigravity/
-.agent/
-
-# ==========================================
-# Agent Lock Files (runtime state, not config)
-# ==========================================
-.agents/.skill-lock.json
-.agents/.skill-lock.json.backup
-
-# ==========================================
-# COMMITTED (project DNA — should be tracked):
-# .agents/rules/         — AI behavioral rules for this project
-# .agents/skills/        — Skill assets installed via sdd CLI
-# .cursorrules           — Cursor AI project rules
-# .windsurfrules         — Windsurf AI project rules
-# sdd.config.json        — Workspace configuration
-# .specs/                — SDD specification documents
-# ==========================================
-
-# ==========================================
 # SDD: AI & Environment Agent Configuration
 # ==========================================
 # Ignore agent cache/session state (ephemeral, may contain sensitive paths)

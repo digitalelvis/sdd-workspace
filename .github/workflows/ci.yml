@@ -1,21 +1,97 @@
-name: Node.js CI
+name: CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
+      - 'v[0-9]*'
+      - 'feat/**'
+      - 'fix/**'
+      - 'hotfix/**'
+      - 'refactor/**'
+      - 'docs/**'
+      - 'chore/**'
+      - 'test/**'
+      - 'perf/**'
   pull_request:
-    branches: [ "main" ]
+    branches:
+      - main
+      - 'v[0-9]*'
 
 jobs:
-  build:
+  quality:
+    name: Lint · Test · Build
     runs-on: ubuntu-latest
+
     steps:
-    - uses: actions/checkout@v4
-    - name: Use Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: 20
-        cache: 'npm'
-    - run: npm ci
-    - run: npm run build
-    - run: npm run lint
+      - uses: actions/checkout@v4
+        with:
+          # Full history needed for commitlint range check on PRs
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+  commit-lint:
+    name: Validate commit messages
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check commit messages in PR
+        run: |
+          npx --no -- commitlint \
+            --from ${{ github.event.pull_request.base.sha }} \
+            --to   ${{ github.event.pull_request.head.sha }} \
+            --verbose
+
+  branch-governance:
+    name: Validate branch naming
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Enforce branch naming convention
+        run: |
+          BRANCH="${{ github.head_ref }}"
+          # Release lines (vX.Y.x) and main are always valid targets/sources
+          RELEASE_PATTERN='^v[0-9]+\.[0-9]+\.x$'
+          FEATURE_PATTERN='^(feat|fix|hotfix|refactor|docs|chore|test|perf)/.+'
+          if echo "$BRANCH" | grep -qE "$RELEASE_PATTERN"; then
+            echo "✅ Branch '$BRANCH' is a valid release line."
+          elif echo "$BRANCH" | grep -qE "$FEATURE_PATTERN"; then
+            echo "✅ Branch '$BRANCH' is valid."
+          else
+            echo "❌ Branch '$BRANCH' does not follow the naming convention."
+            echo "   Allowed: release lines (vX.Y.x) or feature branches (<type>/<description>)"
+            echo "   Allowed types: feat, fix, hotfix, refactor, docs, chore, test, perf"
+            exit 1
+          fi

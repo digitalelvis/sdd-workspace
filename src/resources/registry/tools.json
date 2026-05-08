@@ -1,0 +1,123 @@
+{
+  "eslint": {
+    "type": "linter",
+    "displayName": "ESLint",
+    "defaultSkills": [],
+    "defaultSkillsProviders": [],
+    "defaultRules": ["eslint-rules"],
+    "configFiles": [
+      ".eslintrc",
+      ".eslintrc.json",
+      ".eslintrc.js",
+      ".eslintrc.yaml",
+      "eslint.config.js",
+      "eslint.config.mjs"
+    ],
+    "dependencies": ["eslint"],
+    "recommendedStacks": ["nodejs", "react", "nextjs", "vue"]
+  },
+  "husky": {
+    "type": "git-hook",
+    "displayName": "Husky",
+    "defaultSkills": [],
+    "defaultSkillsProviders": [],
+    "defaultRules": [],
+    "configFiles": [".husky", ".huskyrc"],
+    "dependencies": ["husky"],
+    "recommendedStacks": ["all"]
+  },
+  "prettier": {
+    "type": "formatter",
+    "displayName": "Prettier",
+    "defaultSkills": [],
+    "defaultSkillsProviders": [],
+    "defaultRules": [],
+    "configFiles": [
+      ".prettierrc",
+      ".prettierrc.json",
+      ".prettierrc.yml",
+      ".prettierrc.yaml",
+      ".prettierrc.js",
+      ".prettierrc.mjs",
+      ".prettierrc.cjs",
+      "prettier.config.js",
+      "prettier.config.mjs",
+      "prettier.config.cjs"
+    ],
+    "dependencies": ["prettier"],
+    "recommendedStacks": ["all"]
+  },
+  "commitlint": {
+    "type": "git-hook",
+    "displayName": "Commitlint",
+    "defaultSkills": [],
+    "defaultSkillsProviders": [],
+    "defaultRules": [],
+    "configFiles": [
+      ".commitlintrc",
+      ".commitlintrc.json",
+      ".commitlintrc.yaml",
+      ".commitlintrc.yml",
+      ".commitlintrc.js",
+      ".commitlintrc.cjs",
+      ".commitlintrc.ts",
+      "commitlint.config.js",
+      "commitlint.config.cjs",
+      "commitlint.config.ts"
+    ],
+    "dependencies": ["@commitlint/cli", "@commitlint/config-conventional"],
+    "recommendedStacks": ["all"]
+  },
+  "storybook": {
+    "type": "testing",
+    "displayName": "Storybook",
+    "defaultSkills": [],
+    "defaultSkillsProviders": [],
+    "defaultRules": [],
+    "configFiles": [".storybook"],
+    "dependencies": ["storybook"],
+    "recommendedStacks": ["react", "nextjs", "vue"]
+  },
+  "jest": {
+    "type": "testing",
+    "displayName": "Jest",
+    "defaultSkills": [],
+    "defaultSkillsProviders": [],
+    "defaultRules": [],
+    "configFiles": [
+      "jest.config.js",
+      "jest.config.ts",
+      "jest.config.mjs",
+      "jest.config.cjs",
+      "jest.config.json"
+    ],
+    "dependencies": ["jest"],
+    "recommendedStacks": ["nodejs", "react", "nextjs"]
+  },
+  "vitest": {
+    "type": "testing",
+    "displayName": "Vitest",
+    "defaultSkills": [],
+    "defaultSkillsProviders": [],
+    "defaultRules": [],
+    "configFiles": [
+      "vitest.config.ts",
+      "vitest.config.js",
+      "vitest.config.mjs",
+      "vitest.workspace.ts",
+      "vitest.workspace.js"
+    ],
+    "dependencies": ["vitest"],
+    "recommendedStacks": ["vue", "react"]
+  },
+  "zod": {
+    "type": "validation",
+    "displayName": "Zod",
+    "defaultSkills": [],
+    "defaultSkillsProviders": [],
+    "defaultRules": [],
+    "configFiles": [],
+    "dependencies": ["zod"],
+    "recommendedStacks": ["nodejs", "react", "nextjs", "vue"]
+  }
+}

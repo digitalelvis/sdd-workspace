@@ -1,0 +1,188 @@
+{
+  "spec-driven": {
+    "resource": "skill",
+    "mode": "local",
+    "path": "skills/spec-driven",
+    "roles": ["global"]
+  },
+  "tlc-spec-driven": {
+    "resource": "skill",
+    "mode": "cli",
+    "command": "npx -y @tech-leads-club/agent-skills install -s tlc-spec-driven",
+    "roles": ["global"]
+  },
+  "shadcn-ui": {
+    "resource": "skill",
+    "mode": "cli",
+    "command": "npx skills add https://github.com/shadcn/ui --skill shadcn",
+    "roles": ["frontend"]
+  },
+  "supabase-best-practices": {
+    "resource": "skill",
+    "mode": "cli",
+    "command": "npx skills add https://github.com/supabase/agent-skills",
+    "roles": ["backend"]
+  },
+  "nodejs-best-practices": {
+    "resource": "skill",
+    "mode": "local",
+    "path": "skills/nodejs-best-practices",
+    "roles": ["backend"]
+  },
+  "nodejs-backend-patterns": {
+    "resource": "skill",
+    "mode": "local",
+    "path": "skills/nodejs-backend-patterns",
+    "roles": ["backend"]
+  },
+  "react-best-practices": {
+    "resource": "skill",
+    "mode": "local",
+    "path": "skills/react-best-practices",
+    "roles": ["frontend"]
+  },
+  "architect-review": {
+    "resource": "skill",
+    "mode": "cli",
+    "command": "npx -y @digitalelvis/agent-skills install -s architect-review",
+    "roles": ["global"]
+  },
+  "clean-code": {
+    "resource": "skill",
+    "mode": "cli",
+    "command": "npx -y @digitalelvis/agent-skills install -s clean-code",
+    "roles": ["global"]
+  },
+  "git-pushing": {
+    "resource": "skill",
+    "mode": "cli",
+    "command": "npx -y @digitalelvis/agent-skills install -s git-pushing",
+    "roles": ["global"]
+  },
+  "postgres-best-practices": {
+    "resource": "skill",
+    "mode": "local",
+    "path": "skills/postgres-best-practices",
+    "roles": ["backend"]
+  },
+  "nosql-expert": {
+    "resource": "skill",
+    "mode": "local",
+    "path": "skills/nosql-expert",
+    "roles": ["backend"]
+  },
+  "composition-patterns": {
+    "resource": "skill",
+    "mode": "git",
+    "url": "https://github.com/vercel-labs/agent-skills",
+    "subpath": "skills/composition-patterns",
+    "roles": ["frontend"]
+  },
+  "deploy-to-vercel": {
+    "resource": "skill",
+    "mode": "git",
+    "url": "https://github.com/vercel-labs/agent-skills",
+    "subpath": "skills/deploy-to-vercel",
+    "roles": ["global"]
+  },
+  "react-native-skills": {
+    "resource": "skill",
+    "mode": "git",
+    "url": "https://github.com/vercel-labs/agent-skills",
+    "subpath": "skills/react-native-skills",
+    "roles": ["frontend"]
+  },
+  "react-view-transitions": {
+    "resource": "skill",
+    "mode": "git",
+    "url": "https://github.com/vercel-labs/agent-skills",
+    "subpath": "skills/react-view-transitions",
+    "roles": ["frontend"]
+  },
+  "vercel-cli-with-tokens": {
+    "resource": "skill",
+    "mode": "git",
+    "url": "https://github.com/vercel-labs/agent-skills",
+    "subpath": "skills/vercel-cli-with-tokens",
+    "roles": ["global"]
+  },
+  "web-design-guidelines": {
+    "resource": "skill",
+    "mode": "git",
+    "url": "https://github.com/vercel-labs/agent-skills",
+    "subpath": "skills/web-design-guidelines",
+    "roles": ["frontend"]
+  },
+  "mongodb-connection": {
+    "resource": "skill",
+    "provider": "mongodb",
+    "categories": ["database"],
+    "mode": "git",
+    "url": "https://github.com/mongodb/agent-skills",
+    "subpath": "skills/mongodb-connection",
+    "roles": ["backend"]
+  },
+  "atlas-stream-processing": {
+    "resource": "skill",
+    "provider": "mongodb",
+    "categories": ["database"],
+    "mode": "git",
+    "url": "https://github.com/mongodb/agent-skills",
+    "subpath": "skills/atlas-stream-processing",
+    "roles": ["backend"]
+  },
+  "mongodb-natural-language-querying": {
+    "resource": "skill",
+    "provider": "mongodb",
+    "categories": ["database"],
+    "mode": "git",
+    "url": "https://github.com/mongodb/agent-skills",
+    "subpath": "skills/mongodb-natural-language-querying",
+    "roles": ["backend"]
+  },
+  "mongodb-query-optimizer": {
+    "resource": "skill",
+    "provider": "mongodb",
+    "categories": ["database"],
+    "mode": "git",
+    "url": "https://github.com/mongodb/agent-skills",
+    "subpath": "skills/mongodb-query-optimizer",
+    "roles": ["backend"]
+  },
+  "mongodb-schema-design": {
+    "resource": "skill",
+    "provider": "mongodb",
+    "categories": ["database"],
+    "mode": "git",
+    "url": "https://github.com/mongodb/agent-skills",
+    "subpath": "skills/mongodb-schema-design",
+    "roles": ["backend"]
+  },
+  "mongodb-search-and-ai": {
+    "resource": "skill",
+    "provider": "mongodb",
+    "categories": ["database"],
+    "mode": "git",
+    "url": "https://github.com/mongodb/agent-skills",
+    "subpath": "skills/mongodb-search-and-ai",
+    "roles": ["backend"]
+  },
+  "supabase-postgres-best-practices": {
+    "resource": "skill",
+    "provider": "supabase",
+    "categories": ["database"],
+    "mode": "git",
+    "url": "https://github.com/supabase/agent-skills",
+    "subpath": "skills/supabase-postgres-best-practices",
+    "roles": ["backend"]
+  },
+  "supabase": {
+    "resource": "skill",
+    "provider": "supabase",
+    "categories": ["database"],
+    "mode": "git",
+    "url": "https://github.com/supabase/agent-skills",
+    "subpath": "skills/supabase",
+    "roles": ["backend"]
+  }
+}

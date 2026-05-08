@@ -6,19 +6,23 @@ import { AiAgent } from "../domain/enums/AiAgent";
 import { StackProvider } from "../domain/contracts/StackProvider";
 import { WorkspaceConfig } from "../config/ConfigSchema";
 import { LOCAL_CONFIG_FILENAME } from "../config/defaults";
+import { YamlParser } from "../utils/YamlParser";
 
 // Stacks
+import { RegistryLoader } from "../resources/RegistryLoader";
 import { NodeStackProvider } from "./providers/stacks/NodeStackProvider";
-import { ReactStackProvider } from "./providers/stacks/ReactStackProvider";
-import { NextJsStackProvider } from "./providers/stacks/NextJsStackProvider";
+import { GenericStackProvider } from "./providers/stacks/GenericStackProvider";
+import { ResourcePathUtils } from "../utils/ResourcePathUtils";
 
 // Engines
 import { SDDEngine } from "./engines/SDDEngine";
 import { EcosystemEngine } from "./engines/EcosystemEngine";
+import { WorkflowComposer } from "./engines/WorkflowComposer";
 
 export class WorkspaceService {
   private readonly ecosystemEngine = new EcosystemEngine();
   private readonly sddEngine = new SDDEngine();
+  private readonly workflowComposer = new WorkflowComposer();
 
   /**
    * Execute the full workspace provisioning pipeline.
@@ -40,7 +44,15 @@ export class WorkspaceService {
 
       // 3. Inject SDD rules and skills (using merged skill list from config)
       const skillsToInject = resolved.skills?.include ?? [];
-      await this.sddEngine.inject(targetDir, stackProviders, agents, skillsToInject, resolved.ruleTemplates);
+      await this.sddEngine.inject(
+        targetDir,
+        stackProviders,
+        agents,
+        skillsToInject,
+        resolved.database,
+        resolved.ruleTemplates,
+        resolved.gitStrategy
+      );
 
       // 4. Ensure gitignore has correct AI workspace rules
       this.ensureGitignore(targetDir);
@@ -50,6 +62,11 @@ export class WorkspaceService {
       if (!fs.existsSync(rootSpecsDir)) {
         fs.mkdirSync(rootSpecsDir, { recursive: true });
         console.log(chalk.green("✔️  Initialized workspace root specifications directory at .specs/"));
+      }
+
+      // 6. Provision CI/CD
+      if (resolved.generateCICD) {
+        this.workflowComposer.compose(targetDir, resolved);
       }
     } catch (error) {
       console.error(chalk.red("\n❌ Critical Exception during Injection:"), error);
@@ -64,34 +81,28 @@ export class WorkspaceService {
   }
 
   /**
-   * Write the resolved config to sdd.config.json in the target directory.
+   * Write the resolved config to sdd.yml in the target directory.
    */
   public writeLocalConfig(targetDir: string, config: object): void {
     const configPath = path.join(targetDir, LOCAL_CONFIG_FILENAME);
-    fs.writeFileSync(configPath, JSON.stringify(config, null, 2) + "\n", "utf-8");
+    YamlParser.write(configPath, config);
     console.log(chalk.green(`✔️  Workspace configuration saved to ${LOCAL_CONFIG_FILENAME}`));
   }
 
   // ─── Private helpers ─────────────────────────────────────────────────────
 
   public resolveStackProviders(stacks: SupportedStack[]): StackProvider[] {
+    const registry = RegistryLoader.load();
     const providers: StackProvider[] = [];
+    
     for (const stack of stacks) {
-      switch (stack) {
-        case SupportedStack.NEXTJS:
-          providers.push(new NextJsStackProvider());
-          break;
-        case SupportedStack.REACT:
-          providers.push(new ReactStackProvider());
-          break;
-        case SupportedStack.NODEJS:
-        case SupportedStack.PYTHON:
-        case SupportedStack.PHP:
-        case SupportedStack.LARAVEL:
-        case SupportedStack.VUE:
-        default:
-          providers.push(new NodeStackProvider());
-          break;
+      const stackDef = registry.stacks[stack];
+      if (stackDef) {
+        providers.push(new GenericStackProvider(stack, stackDef));
+      } else {
+        console.warn(chalk.yellow(`⚠️ No registry definition found for stack: ${stack}`));
+        // Fallback to a basic Node provider or similar if needed
+        providers.push(new NodeStackProvider());
       }
     }
     return providers;
