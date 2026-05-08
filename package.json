@@ -17,6 +17,7 @@
     "sdd-workspace": "./dist/index.js"
   },
   "scripts": {
+    "prepare": "husky install",
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "ts-node src/index.ts",
@@ -26,6 +27,15 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "release": "release-it"
+  },
+  "lint-staged": {
+    "src/**/*.{ts,js}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{md,yml,json}": [
+      "prettier --write"
+    ]
   },
   "files": [
     "dist",
