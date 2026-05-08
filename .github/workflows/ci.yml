@@ -82,11 +82,16 @@ jobs:
       - name: Enforce branch naming convention
         run: |
           BRANCH="${{ github.head_ref }}"
-          PATTERN='^(feat|fix|hotfix|refactor|docs|chore|test|perf)/.+'
-          if ! echo "$BRANCH" | grep -qE "$PATTERN"; then
+          # Release lines (vX.Y.x) and main are always valid targets/sources
+          RELEASE_PATTERN='^v[0-9]+\.[0-9]+\.x$'
+          FEATURE_PATTERN='^(feat|fix|hotfix|refactor|docs|chore|test|perf)/.+'
+          if echo "$BRANCH" | grep -qE "$RELEASE_PATTERN"; then
+            echo "✅ Branch '$BRANCH' is a valid release line."
+          elif echo "$BRANCH" | grep -qE "$FEATURE_PATTERN"; then
+            echo "✅ Branch '$BRANCH' is valid."
+          else
             echo "❌ Branch '$BRANCH' does not follow the naming convention."
-            echo "   Expected pattern: <type>/<description>"
+            echo "   Allowed: release lines (vX.Y.x) or feature branches (<type>/<description>)"
             echo "   Allowed types: feat, fix, hotfix, refactor, docs, chore, test, perf"
             exit 1
           fi
-          echo "✅ Branch name '$BRANCH' is valid."
