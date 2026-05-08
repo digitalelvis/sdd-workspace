@@ -7,6 +7,8 @@ import {
   SetupOptions,
 } from "../../../domain/contracts/StackProvider";
 import { SupportedStack } from "../../../domain/enums/SupportedStack";
+import { ExistenceChecker } from "../../../utils/ExistenceChecker";
+import { RegistryLoader } from "../../../resources/RegistryLoader";
 
 export abstract class BaseStackProvider implements StackProvider {
   abstract readonly stack: SupportedStack;
@@ -26,12 +28,29 @@ export abstract class BaseStackProvider implements StackProvider {
         `\n📥 Configuring ${this.stack.toUpperCase()} Linter and Prettier rules...`,
       ),
     );
-    this.injectConfigTemplates(targetDir);
+
+    const depsToInstall: string[] = [];
+    const installedTools = new Set<string>();
+
+    for (const dep of (options.linterDependencies || [])) {
+      const toolName = dep.startsWith('@') ? dep.split('@').slice(0, 2).join('@') : dep.split('@')[0];
+      if (ExistenceChecker.isAlreadyInstalled(toolName, targetDir)) {
+        installedTools.add(toolName);
+      } else {
+        depsToInstall.push(dep);
+      }
+    }
+
+    if (installedTools.size > 0) {
+      console.log(chalk.yellow(`ℹ️  Skipping installation of already present tools: ${Array.from(installedTools).join(', ')}`));
+    }
+
+    this.injectConfigTemplates(targetDir, installedTools);
     this.updatePackageJson(targetDir);
-    this.installDependencies(targetDir, options.linterDependencies || []);
+    this.installDependencies(targetDir, depsToInstall);
   }
 
-  private injectConfigTemplates(targetDir: string): void {
+  private injectConfigTemplates(targetDir: string, installedTools: Set<string>): void {
     const basePath = __dirname.includes("dist")
       ? path.join(__dirname, "..", "..", "..", "src", "resources")
       : path.join(__dirname, "..", "..", "..", "resources");
@@ -39,10 +58,29 @@ export abstract class BaseStackProvider implements StackProvider {
     const lintSourceDir = path.join(basePath, "lint", this.stack);
 
     if (fs.existsSync(lintSourceDir)) {
-      fs.cpSync(lintSourceDir, targetDir, { recursive: true, force: true });
+      const registry = RegistryLoader.load();
+      const skipFiles = new Set<string>();
+      
+      for (const tool of installedTools) {
+        const def = registry.tools?.[tool];
+        if (def && def.configFiles) {
+          def.configFiles.forEach(f => skipFiles.add(f));
+        }
+      }
+
+      fs.cpSync(lintSourceDir, targetDir, { 
+        recursive: true, 
+        force: false,
+        errorOnExist: false,
+        filter: (src) => {
+          const fileName = path.basename(src);
+          if (fs.lstatSync(src).isDirectory()) return true;
+          return !skipFiles.has(fileName);
+        }
+      });
       console.log(
         chalk.green(
-          `✔️  Injected strict .eslintrc.json and .prettierrc for ${this.stack}.`,
+          `✔️  Injected strict ecosystem templates for ${this.stack}.`,
         ),
       );
     } else {

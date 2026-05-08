@@ -1,6 +1,6 @@
 {
   "name": "@digitalelvis/sdd-workspace",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "SDD Enginee for Workspaces",
   "author": {
     "name": "Elvis Lopes",
@@ -17,6 +17,7 @@
     "sdd-workspace": "./dist/index.js"
   },
   "scripts": {
+    "prepare": "husky install",
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "ts-node src/index.ts",
@@ -26,6 +27,15 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "release": "release-it"
+  },
+  "lint-staged": {
+    "src/**/*.{ts,js}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{md,yml,json}": [
+      "prettier --write"
+    ]
   },
   "files": [
     "dist",
@@ -43,12 +53,16 @@
   "dependencies": {
     "chalk": "^4.1.2",
     "commander": "^11.1.0",
-    "inquirer": "^9.2.12"
+    "inquirer": "^9.2.12",
+    "js-yaml": "^4.1.1"
   },
   "devDependencies": {
+    "@commitlint/cli": "^20.5.3",
+    "@commitlint/config-conventional": "^20.5.3",
     "@release-it/conventional-changelog": "^8.0.1",
     "@types/inquirer": "^9.0.7",
     "@types/jest": "^29.5.12",
+    "@types/js-yaml": "^4.0.9",
     "@types/node": "^20.10.0",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
@@ -61,6 +75,7 @@
     "release-it": "^17.3.0",
     "ts-jest": "^29.1.5",
     "ts-node": "^10.9.1",
-    "typescript": "^5.3.2"
+    "typescript": "^5.3.2",
+    "zod": "^4.4.3"
   }
 }

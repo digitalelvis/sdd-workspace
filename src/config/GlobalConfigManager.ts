@@ -1,81 +1,73 @@
-import fs from "fs";
-import path from "path";
 import os from "os";
+import path from "path";
 import { GlobalUserConfig } from "./ConfigSchema";
 import { GLOBAL_CONFIG_FILENAME } from "./defaults";
+import { YamlParser } from "../utils/YamlParser";
 
 export class GlobalConfigManager {
-  private configPath: string;
+  private readonly configPath: string;
 
   constructor(customPath?: string) {
-    this.configPath = customPath || path.join(os.homedir(), GLOBAL_CONFIG_FILENAME);
+    this.configPath = customPath ?? path.join(os.homedir(), GLOBAL_CONFIG_FILENAME);
   }
 
   /**
-   * Loads the global configuration from ~/.sddrc.json.
+   * Loads the global configuration from ~/.sddrc.yml.
    * Returns empty defaults if the file doesn't exist.
    */
   public load(): GlobalUserConfig {
-    if (!fs.existsSync(this.configPath)) {
-      return {};
-    }
-
     try {
-      const content = fs.readFileSync(this.configPath, "utf-8");
-      return JSON.parse(content) as GlobalUserConfig;
-    } catch (error) {
+      return YamlParser.read<GlobalUserConfig>(this.configPath) ?? {};
+    } catch {
       console.warn(`⚠️  Failed to parse global config at ${this.configPath}. Using defaults.`);
       return {};
     }
   }
 
   /**
-   * Saves the provided config object to disk.
+   * Saves the provided config object to disk as YAML.
    */
   public save(config: GlobalUserConfig): void {
-    const content = JSON.stringify(config, null, 2);
-    const dir = path.dirname(this.configPath);
-
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-
-    fs.writeFileSync(this.configPath, content, "utf-8");
+    YamlParser.write(this.configPath, config);
   }
 
   /**
-   * Sets a specific value in the global config using a dot-notated path.
-   * Example path: 'defaults.ide', 'skills.add'
+   * Sets a value in the global config using a dot-notated key path.
+   * Example: 'defaults.ide', 'skills.add'
    */
-  public set(keyPath: string, value: any): void {
+  public set(keyPath: string, value: unknown): void {
     const config = this.load();
     const keys = keyPath.split(".");
-    let current: any = config;
+    let cursor: Record<string, unknown> = config as Record<string, unknown>;
 
     for (let i = 0; i < keys.length - 1; i++) {
       const key = keys[i];
-      if (!current[key]) current[key] = {};
-      current = current[key];
+      if (!cursor[key] || typeof cursor[key] !== "object") {
+        cursor[key] = {};
+      }
+      cursor = cursor[key] as Record<string, unknown>;
     }
 
-    current[keys[keys.length - 1]] = value;
+    cursor[keys[keys.length - 1]] = value;
     this.save(config);
   }
 
   /**
-   * Retrieves a value from the global config using a dot-notated path.
+   * Retrieves a value from the global config using a dot-notated key path.
    */
-  public get(keyPath: string): any {
+  public get(keyPath: string): unknown {
     const config = this.load();
     const keys = keyPath.split(".");
-    let current: any = config;
+    let cursor: unknown = config;
 
     for (const key of keys) {
-      if (current === undefined || current === null) return undefined;
-      current = current[key];
+      if (cursor === null || cursor === undefined || typeof cursor !== "object") {
+        return undefined;
+      }
+      cursor = (cursor as Record<string, unknown>)[key];
     }
 
-    return current;
+    return cursor;
   }
 
   public getConfigPath(): string {

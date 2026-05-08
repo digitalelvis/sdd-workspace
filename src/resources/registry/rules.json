@@ -1,0 +1,80 @@
+{
+  "engineering-rules": {
+    "resource": "rule",
+    "mode": "local",
+    "path": "rules/engineering-rules.md",
+    "roles": ["global"]
+  },
+  "node-rules": {
+    "resource": "rule",
+    "mode": "local",
+    "path": "rules/node-rules.md",
+    "roles": ["backend"]
+  },
+  "react-rules": {
+    "resource": "rule",
+    "mode": "local",
+    "path": "rules/react-rules.md",
+    "roles": ["frontend"]
+  },
+  "next-rules": {
+    "resource": "rule",
+    "mode": "local",
+    "path": "rules/next-rules.md",
+    "roles": ["frontend"]
+  },
+  "common-rules": {
+    "resource": "rule",
+    "mode": "local",
+    "path": "rules/common-rules.md",
+    "roles": ["global"]
+  },
+  "python-rules": {
+    "resource": "rule",
+    "mode": "local",
+    "path": "rules/python-rules.md",
+    "roles": ["backend"]
+  },
+  "php-rules": {
+    "resource": "rule",
+    "mode": "local",
+    "path": "rules/php-rules.md",
+    "roles": ["backend"]
+  },
+  "laravel-rules": {
+    "resource": "rule",
+    "mode": "local",
+    "path": "rules/laravel-rules.md",
+    "roles": ["backend"]
+  },
+  "vue-rules": {
+    "resource": "rule",
+    "mode": "local",
+    "path": "rules/vue-rules.md",
+    "roles": ["frontend"]
+  },
+  "postgres-rules": {
+    "resource": "rule",
+    "mode": "local",
+    "path": "rules/postgres-rules.md",
+    "roles": ["backend"]
+  },
+  "git-github-flow": {
+    "resource": "rule",
+    "mode": "local",
+    "path": "rules/git/github-flow.md",
+    "roles": ["ai", "human"]
+  },
+  "git-git-flow": {
+    "resource": "rule",
+    "mode": "local",
+    "path": "rules/git/git-flow.md",
+    "roles": ["ai", "human"]
+  },
+  "git-jira-flow": {
+    "resource": "rule",
+    "mode": "local",
+    "path": "rules/git/jira-flow.md",
+    "roles": ["ai", "human"]
+  }
+}

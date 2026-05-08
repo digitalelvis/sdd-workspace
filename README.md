@@ -41,7 +41,7 @@ sdd init
 
 #### Configure your Global Preferences
 
-You will be highly productive by configuring your global preferences for skills, stacks, agents, etc. (stored in `~/.sddrc.json`) which will be automatically applied to all new projects.
+You will be highly productive by configuring your global preferences for skills, stacks, agents, etc. (stored in `~/.sddrc.yml`) which will be automatically applied to all new projects.
 
 ```bash
 # Set Cursor as the default IDE and your favorite agents
@@ -70,6 +70,8 @@ To test source code changes or contribute to the project:
 # Clone the repository
 git clone https://github.com/digitalelvis/sdd-workspace.git
 cd ai-sdd-workspace
+
+# npm install also runs `prepare`, which installs Husky git hooks
 npm install
 
 # Build and run locally
@@ -83,10 +85,12 @@ npm run sdd -- init
 
 | Command                       | Description                                                          |
 | :---------------------------- | :----------------------------------------------------------------- |
-| `sdd init`                    | Detects the stack and generates the `sdd.config.json` file.        |
-| `sdd apply`                   | Synchronizes the workspace with current `sdd.config.json` rules.   |
-| `sdd config list`             | Lists all global configurations in `~/.sddrc.json`.                 |
+| `sdd init`                    | Detects the stack and generates the `sdd.yml` file.                |
+| `sdd apply`                   | Synchronizes the workspace with current `sdd.yml` rules.           |
+| `sdd config list`             | Lists all global configurations in `~/.sddrc.yml`.                 |
 | `sdd config set <path> <val>` | Sets a global value (e.g., `sdd config set defaults.ide vscode`). |
+| `sdd find -s`                 | Search skills by provider, category, or name.                      |
+| `sdd find -r`                 | Search rules by provider, category, or name.                       |
 | `sdd add --skill <name>`      | (Beta) Adds a specific skill via registry.                         |
 
 ---
@@ -100,7 +104,7 @@ After running `sdd init`, your project will follow the SDD Premium standard:
 │   ├── rules/          # Agent behavioral rules (Committed)
 │   └── skills/         # Specialized technical knowledge (Committed)
 ├── .specs/             # Specification documentation (Source of Truth)
-├── sdd.config.json     # Declarative workspace configuration
+├── sdd.yml             # Declarative workspace configuration
 ├── .cursorrules        # Entry point for Cursor AI
 └── .windsurfrules     # Entry point for Windsurf
 ```

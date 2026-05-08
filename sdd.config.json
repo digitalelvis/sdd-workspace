@@ -1,19 +1,22 @@
 {
-  "version": "0.0.2",
+  "version": "0.1.2",
   "stacks": [
     "nodejs"
   ],
   "agents": [
-    "cursor"
+    "cursor",
+    "antigravity"
   ],
   "ide": "antigravity",
   "lint": true,
+  "database": [],
+  "security": [],
   "skills": {
     "include": [
-      "tlc-spec-driven",
+      "spec-driven",
       "nodejs-best-practices"
     ],
     "exclude": []
   },
-  "updatedAt": "2026-04-20T18:15:21.831Z"
+  "updatedAt": "2026-05-04T11:05:54.890Z"
 }

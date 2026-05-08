@@ -25,13 +25,14 @@ npm run build
 
 ## 💻 Development Commands
 
-| Command                 | Description                        |
-| ----------------------- | ---------------------------------- |
-| `npm run dev -- init`   | Run CLI locally bypassing build    |
-| `npm run build`         | Compile TypeScript into `/dist`    |
-| `npm run test`          | Run all Jest Unit Tests            |
-| `npm run lint`          | Lint codebase via ESLint           |
-| `npm run release`       | Trigger automated SemVer changelog |
+| Command                 | Description                                    |
+| ----------------------- | ---------------------------------------------- |
+| `npm run dev -- init`   | Run CLI locally bypassing build                |
+| `npm run build`         | Compile TypeScript into `/dist`                |
+| `npm run test`          | Run all Jest Unit Tests                        |
+| `npm run lint`          | Lint codebase via ESLint                       |
+| `npm run format`        | Auto-format source files with Prettier         |
+| `npm run release`       | Trigger automated SemVer changelog via release-it |
 
 ## 📐 Architecture & Domain Model
 
@@ -45,8 +46,8 @@ graph TD
     
     subgraph ConfigLayers [4-Layer Hierarchy]
         L1[Built-in Defaults]
-        L2[Global: ~/.sddrc.json]
-        L3[Local: sdd.config.json]
+        L2[Global: ~/.sddrc.yml]
+        L3[Local: sdd.yml]
         L4[CLI Flags]
     end
 
@@ -70,13 +71,15 @@ We document major architectural changes using **Architecture Decision Records**.
 
 ```text
 ai-sdd-workspace/
+├── .husky/                       # Git hooks (commit-msg, pre-commit)
+├── .github/workflows/            # CI pipeline (ci.yml)
 ├── src/
 │   ├── analyzer/                 # Framework and Ecosystem Detectors
-│   ├── cli/                      # NEW: Modular CLI layer (Commands & Actions)
+│   ├── cli/                      # Modular CLI layer (Commands & Actions)
 │   │   ├── commands/             # Individual command factories
 │   │   └── cli-handler.ts        # Global Commander orchestration
 │   ├── config/                   # Hierarchical Config & Global Management
-│   │   ├── GlobalConfigManager.ts # Business logic for ~/.sddrc.json
+│   │   ├── GlobalConfigManager.ts # Business logic for ~/.sddrc.yml
 │   │   └── ConfigResolver.ts     # 4-layer merge engine
 │   ├── domain/                   # Enums and Interfaces
 │   ├── scaffolder/               # Core execution layers
@@ -84,7 +87,8 @@ ai-sdd-workspace/
 │   └── index.ts                  # Minimal Entrypoint
 ├── docs/
 │   └── adr/                      # Architecture Decision Records
-├── tests/                        # Jest test definitions
+├── tests/                        # Jest test definitions mirroring src/
+├── commitlint.config.js          # Commit message rules
 └── package.json
 ```
 
@@ -106,20 +110,43 @@ Add an entry to `src/resources/registry.json`:
 }
 ```
 
+## 🔒 Git Hooks
+
+`npm install` automatically installs two Husky hooks:
+
+| Hook | Trigger | What it does |
+| --- | --- | --- |
+| `pre-commit` | Every `git commit` | Runs `lint-staged` — ESLint + Prettier on staged `src/` files |
+| `commit-msg` | Every `git commit` | Runs `commitlint` — blocks commits that violate the message format |
+
 ## 🔄 Release & Governance Process
 
-We use **Release Branching** (`vX.Y.x`) and **Conventional Commits**.
+We use **Release Branching** (`vX.Y.x`) and **Conventional Commits** enforced by `commitlint`.
 Never develop directly on `main`.
 
-| Commit Prefix | Version Bump  | Example                               |
-| ------------- | ------------- | ------------------------------------- |
-| `feat:`       | Minor (0.X.0) | `feat: add WebStorm ide support`      |
-| `fix:`        | Patch (0.0.X) | `fix: correct linter path generation` |
-| `docs:`       | No bump       | `docs: update README`                 |
+| Commit Type  | Version Bump  | Example                                        |
+| ------------ | ------------- | ---------------------------------------------- |
+| `feat:`      | Minor (0.X.0) | `feat(cli): add unified find command`          |
+| `fix:`       | Patch (0.0.X) | `fix(sdd): rename AGENT.md to AGENTS.md`       |
+| `refactor:`  | No bump       | `refactor(config): extract YamlParser utility` |
+| `docs:`      | No bump       | `docs(readme): update setup instructions`      |
+| `chore:`     | No bump       | `chore(tooling): initialize husky hooks`       |
+| `test:`      | No bump       | `test(engine): add SDDEngine injection tests`  |
+| `perf:`      | Patch/Minor   | `perf(registry): lazy-load catalog on demand`  |
 
 > **Note**: Do NOT manually edit `CHANGELOG.md`. It is automated via `release-it`.
 
+## 🚦 CI Pipeline
+
+Every push and Pull Request runs three jobs defined in `.github/workflows/ci.yml`:
+
+| Job | Runs on | What it validates |
+| --- | --- | --- |
+| `quality` | Push & PR | `lint → test → build` — blocks merge on any failure |
+| `commit-lint` | PR only | All commit messages in the PR branch must pass `commitlint` |
+| `branch-governance` | PR only | Branch name must follow `<type>/<description>` pattern |
+
 ## 🤝 Submitting Contributions
-1. **Fork** and **Branch** off the current active release line.
-2. **Commit** with conventional commits.
-3. **Push** and **Open** a Pull Request. Ensure all Jest tests are passing (`npm run test`).
+1. **Branch** off the current active release line (e.g. `v0.1.x`) using the `feat/` or `fix/` prefix.
+2. **Commit** atomically with Conventional Commits — the `commit-msg` hook will enforce the format.
+3. **Push** and **open a Pull Request** targeting the release branch.  Ensure `npm run test` and `npm run build` pass locally before submitting.
