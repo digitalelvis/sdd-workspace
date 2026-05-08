@@ -3,6 +3,7 @@ import { SkillRegistryCatalog } from "../../../src/domain/contracts/SkillRegistr
 
 describe("SkillService", () => {
   const mockRegistry: Partial<SkillRegistryCatalog> = {
+    rules: {},
     skills: {
       "mongodb-connection": {
         resource: "skill",

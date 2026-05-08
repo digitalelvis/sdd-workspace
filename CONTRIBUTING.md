@@ -45,8 +45,8 @@ graph TD
     
     subgraph ConfigLayers [4-Layer Hierarchy]
         L1[Built-in Defaults]
-        L2[Global: ~/.sddrc.json]
-        L3[Local: sdd.config.json]
+        L2[Global: ~/.sddrc.yml]
+        L3[Local: sdd.yml]
         L4[CLI Flags]
     end
 
@@ -76,7 +76,7 @@ ai-sdd-workspace/
 │   │   ├── commands/             # Individual command factories
 │   │   └── cli-handler.ts        # Global Commander orchestration
 │   ├── config/                   # Hierarchical Config & Global Management
-│   │   ├── GlobalConfigManager.ts # Business logic for ~/.sddrc.json
+│   │   ├── GlobalConfigManager.ts # Business logic for ~/.sddrc.yml
 │   │   └── ConfigResolver.ts     # 4-layer merge engine
 │   ├── domain/                   # Enums and Interfaces
 │   ├── scaffolder/               # Core execution layers

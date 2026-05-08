@@ -1,4 +1,3 @@
-import fs from "fs";
 import path from "path";
 import { WorkspaceConfig, GlobalUserConfig, LocalWorkspaceConfig } from "./ConfigSchema";
 import { BUILT_IN_DEFAULTS, LOCAL_CONFIG_FILENAME } from "./defaults";
@@ -7,6 +6,7 @@ import { SupportedStack } from "../domain/enums/SupportedStack";
 import { SupportedDatabase } from "../domain/enums/SupportedDatabase";
 import { GlobalConfigManager } from "./GlobalConfigManager";
 import { RegistryLoader } from "../resources/RegistryLoader";
+import { YamlParser } from "../utils/YamlParser";
 import pkg from "../../package.json";
 
 
@@ -23,7 +23,7 @@ export interface CliFlags {
 
 /**
  * ConfigResolver — Merges 4 layers into a single WorkspaceConfig.
- * Priority: CLI Flags → Local sdd.config.json → Global ~/.sddrc.json → Built-in Registry
+ * Priority: CLI Flags → Local sdd.yml → Global ~/.sddrc.yml → Built-in Registry
  */
 export class ConfigResolver {
   public resolve(cliFlags: CliFlags, projectDir: string): WorkspaceConfig {
@@ -97,7 +97,7 @@ export class ConfigResolver {
 
   /**
    * Resolves the base skills, tools, and templates for the detected stacks.
-   * Merges Built-in Registry defaults with Global ~/.sddrc.json stack overrides.
+   * Merges Built-in Registry defaults with Global ~/.sddrc.yml stack overrides.
    */
   private resolveStackBase(
     stacks: SupportedStack[],
@@ -164,13 +164,10 @@ export class ConfigResolver {
   public loadLocalConfig(projectDir: string): LocalWorkspaceConfig | null {
     try {
       const configPath = path.join(projectDir, LOCAL_CONFIG_FILENAME);
-      if (fs.existsSync(configPath)) {
-        return JSON.parse(fs.readFileSync(configPath, "utf-8")) as LocalWorkspaceConfig;
-      }
+      return YamlParser.read<LocalWorkspaceConfig>(configPath);
     } catch {
       return null;
     }
-    return null;
   }
 
   private applyGlobalConfig(base: WorkspaceConfig, global: GlobalUserConfig): void {

@@ -1,5 +1,4 @@
 import fs from "fs";
-import path from "path";
 import { ConfigResolver } from "../../../src/config/ConfigResolver";
 import { AiAgent } from "../../../src/domain/enums/AiAgent";
 import { SupportedStack } from "../../../src/domain/enums/SupportedStack";
@@ -47,7 +46,7 @@ describe("ConfigResolver - 4-Layer Merge Hierarchy", () => {
 
   it("should apply global stack-specific overrides incrementally", () => {
     // Mock Global Config existence
-    (fs.existsSync as jest.Mock).mockImplementation((p) => String(p).includes(".sddrc.json"));
+    (fs.existsSync as jest.Mock).mockImplementation((p) => String(p).includes(".sddrc.yml"));
     (fs.readFileSync as jest.Mock).mockReturnValue(JSON.stringify({
       stacks: {
         [SupportedStack.NODEJS]: {
@@ -68,7 +67,7 @@ describe("ConfigResolver - 4-Layer Merge Hierarchy", () => {
   // ─── Layer 3: Local Config ──────────────────────────────────────────────────
 
   it("should apply local config over global config", () => {
-    (fs.existsSync as jest.Mock).mockImplementation((p) => String(p).includes("sdd.config.json"));
+    (fs.existsSync as jest.Mock).mockImplementation((p) => String(p).includes("sdd.yml"));
     (fs.readFileSync as jest.Mock).mockReturnValue(JSON.stringify({
       agents: [AiAgent.CURSOR],
       lint: false
@@ -91,7 +90,7 @@ describe("ConfigResolver - 4-Layer Merge Hierarchy", () => {
 
   // ─── generateLocalConfigContent ────────────────────────────────────────────
 
-  it("should generate a valid sdd.config.json content object", () => {
+  it("should generate a valid sdd.yml content object", () => {
     const resolved = resolver.resolve({ stacks: [SupportedStack.NODEJS] }, "/fake/project");
     const content = resolver.generateLocalConfigContent(resolved, "2026-01-01T00:00:00.000Z");
 

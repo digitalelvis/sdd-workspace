@@ -21,10 +21,10 @@ export const BUILT_IN_DEFAULTS: Required<Pick<WorkspaceConfig, "agents" | "ide" 
 export const CONFIG_VERSION = "0.0.2";
 
 /** Filename for the local project-level config */
-export const LOCAL_CONFIG_FILENAME = "sdd.config.json";
+export const LOCAL_CONFIG_FILENAME = "sdd.yml";
 
 /** Filename for the global user-level config */
-export const GLOBAL_CONFIG_FILENAME = ".sddrc.json";
+export const GLOBAL_CONFIG_FILENAME = ".sddrc.yml";
 
 /** Path for the global user-level config */
 export const GLOBAL_CONFIG_PATH = `${process.env.HOME ?? "~"}/${GLOBAL_CONFIG_FILENAME}`;

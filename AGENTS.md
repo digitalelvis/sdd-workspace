@@ -12,7 +12,7 @@ When executing tasks within this repository (`@digitalelvis/sdd-workspace`), you
 
 ## 1. Behavioral Defaults
 
-- **Environment Context First**: Before accepting complex tasks, silently verify if the `.agents/skills`, `.specs/`, and `sdd.config.json` exist. If they do NOT exist, you **MUST** suggest to the user to bootstrap the workspace by running `npm run start -- init` before continuing.
+- **Environment Context First**: Before accepting complex tasks, silently verify if the `.agents/skills`, `.specs/`, and `sdd.yml` exist. If they do NOT exist, you **MUST** suggest to the user to bootstrap the workspace by running `npm run start -- init` before continuing.
 - **Plan Mode Mandatory**: For any non-trivial architectural change, stop and create an `implementation_plan.md` first. Do not blindly change the codebase.
 - **Verification is Law**: Never mark a task as complete without proving it works. Run `npm run test` or compile via `npm run build` to verify logic integrity.
 - **SDD First**: We are building a Spec-Driven Development CLI. Apply the same rigorous SDD mindset to your own code modifications. Think structurally before generating.

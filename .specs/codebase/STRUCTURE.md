@@ -19,6 +19,6 @@
 ├── dist/                # Compiled JavaScript output
 ├── docs/                # Project documentation
 ├── AGENTS.md            # Guidelines for AI agents
-├── sdd.config.json      # Workspace-specific SDD configuration
+├── sdd.yml              # Workspace-specific SDD configuration
 └── package.json         # Project manifest and dependencies
 ```

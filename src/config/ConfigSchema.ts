@@ -27,9 +27,9 @@ export interface WorkspaceConfig {
   security?: string[];
   skills?: SkillsConfig;
   
-  /** 
+  /**
    * Internal resolved field for ecosystem tools.
-   * Not typically persisted in sdd.config.json, but used during runtime.
+   * Not persisted in sdd.yml — used only during runtime resolution.
    */
   linterDependencies?: string[];
   

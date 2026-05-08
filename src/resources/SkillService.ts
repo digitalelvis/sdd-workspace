@@ -1,62 +1,37 @@
 import { SkillRegistryCatalog } from "../domain/contracts/SkillRegistry";
+import { ResourceType } from "../domain/enums/ResourceType";
+import { ResourceSearchService, ResourceSearchQuery } from "./ResourceSearchService";
 
-export interface SkillSearchQuery {
-  provider?: string;
-  category?: string;
-  name?: string;
-  searchTerm?: string;
-}
+export type { ResourceSearchQuery as SkillSearchQuery };
 
 /**
- * SkillService — Handles discovery and filtering of skills from the registry.
+ * SkillService — skill-scoped façade over ResourceSearchService.
+ * Kept for backward compatibility with registry provisioning code.
  */
 export class SkillService {
-  constructor(private readonly registry: SkillRegistryCatalog) {}
+  private readonly searchService: ResourceSearchService;
 
-  /**
-   * Find skills based on search criteria.
-   */
-  public findSkills(query: SkillSearchQuery): string[] {
-    return Object.entries(this.registry.skills)
-      .filter(([id, def]) => {
-        // Filter by Provider
-        if (query.provider && def.provider !== query.provider) {
-          return false;
-        }
-
-        // Filter by Category
-        if (query.category && !def.categories?.includes(query.category)) {
-          return false;
-        }
-
-        // Filter by Name/ID (partial match)
-        if (query.name && !id.toLowerCase().includes(query.name.toLowerCase())) {
-          return false;
-        }
-
-        // Broad Search Term (matches ID or Provider)
-        if (query.searchTerm) {
-          const term = query.searchTerm.toLowerCase();
-          const matchesId = id.toLowerCase().includes(term);
-          const matchesProvider = def.provider?.toLowerCase().includes(term);
-          if (!matchesId && !matchesProvider) {
-            return false;
-          }
-        }
-
-        return true;
-      })
-      .map(([id]) => id);
+  constructor(private readonly registry: SkillRegistryCatalog) {
+    this.searchService = new ResourceSearchService(registry);
   }
 
   /**
-   * Resolve all skill IDs from a list of providers.
+   * Find skills matching the given query.
+   * Delegates to ResourceSearchService with type fixed to SKILL.
+   */
+  public findSkills(query: Omit<ResourceSearchQuery, "type">): string[] {
+    return this.searchService
+      .find({ ...query, type: ResourceType.SKILL })
+      .map((r) => r.id);
+  }
+
+  /**
+   * Resolve all skill IDs for a list of providers.
    */
   public resolveFromProviders(providers: string[]): string[] {
-    const discovered: string[] = [];
-    for (const provider of providers) {
-      discovered.push(...this.findSkills({ provider }));
-    }
+    const discovered = providers.flatMap((provider) =>
+      this.findSkills({ provider })
+    );
     return Array.from(new Set(discovered));
   }
 }

@@ -6,6 +6,7 @@ import { AiAgent } from "../domain/enums/AiAgent";
 import { StackProvider } from "../domain/contracts/StackProvider";
 import { WorkspaceConfig } from "../config/ConfigSchema";
 import { LOCAL_CONFIG_FILENAME } from "../config/defaults";
+import { YamlParser } from "../utils/YamlParser";
 
 // Stacks
 import { RegistryLoader } from "../resources/RegistryLoader";
@@ -80,11 +81,11 @@ export class WorkspaceService {
   }
 
   /**
-   * Write the resolved config to sdd.config.json in the target directory.
+   * Write the resolved config to sdd.yml in the target directory.
    */
   public writeLocalConfig(targetDir: string, config: object): void {
     const configPath = path.join(targetDir, LOCAL_CONFIG_FILENAME);
-    fs.writeFileSync(configPath, JSON.stringify(config, null, 2) + "\n", "utf-8");
+    YamlParser.write(configPath, config);
     console.log(chalk.green(`✔️  Workspace configuration saved to ${LOCAL_CONFIG_FILENAME}`));
   }
 

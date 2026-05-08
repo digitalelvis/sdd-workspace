@@ -33,9 +33,6 @@
 ### CI/CD & Security (Pending)
 
 - [x] **Dynamic CI/CD Workflow Composer**: Implement `WorkflowComposer` to generate tailored GitHub Actions workflows based on selected tools (lint, test, build).
-- [ ] **Advanced CI/CD Orchestration**: Implement `release.yml` and `check-ci-status` patterns for version automation and gating.
-- [ ] **Automated Security Guardrails**: Add `security-scan` capabilities with PR commenting and notification integration.
-- [ ] **SDD Integrity Validation**: Implement `validate-skills` action to ensure workspace compliance.
 
 ### Architectural Refinement (Pending)
 
@@ -46,10 +43,16 @@
 - [x] **Integrity First (No-Overwrite)**: Ensure `init` never overwrites existing configurations and only prompts for missing components.
 - [x] **Find Skills**: Implement `find-skills` command to find skills by provider, category, or name.
 - [x] **defaultSkillsProviders**: Implement defaultSkillsProviders in databases.json and stacks.json using Find Skills to install.
+- [] **Implement sdd YAML**: Migrate `sdd.config.json` → `sdd.yml` (local) and `~/.sddrc.json` → `~/.sddrc.yml` (global). Introduce a `YamlParser` utility (SRP) for all YAML I/O. Update `GlobalConfigManager`, `ConfigResolver`, `WorkspaceService`, `WorkspaceValidator`, and CLI commands to consume the new format. No JSON fallback.
+  - Acceptance: `sdd init` generates `sdd.yml`; `sdd apply` reads `sdd.yml`; `sdd config` reads/writes `~/.sddrc.yml`; all unit tests green; no `JSON.parse` references in config layer.
+- [] **Upgrade Find Command**: Replace `find-skills` with a unified `find` command. Support `find -s` (skills) or `find -r` (rules) with composable filters `--provider`, `--category`, `--name`. Introduce `ResourceSearchService` (OCP/DIP) extending search to both resource types without duplicating logic.
+  - Acceptance: `sdd find -s --provider sdd`, `sdd find -r --category architecture` both return filtered results; `SkillService.resolveFromProviders` delegates to new service; unit tests cover skill+rule combinations.
 
 ## 0.1.3: Expansion
 
-- [ ] Implement `add` command for incremental skill/rule installation.
+- [ ] **CONTRIBUIT Guides**: We need create a guide for contrbibuite with new rules, skills, tools, stacks with references in commit and PR for validation.
+- [ ] **Automated Security Guardrails**: Add `security-scan` capabilities with PR commenting and notification integration when a new commit is to include rules, skills, tools, stacks, etc.
+- [ ] Implement `add -option [name]` command for incremental skill or rule installation.
 - [ ] Add support for more IDEs (WebStorm, IntelliJ).
 - [ ] Enhance Analyzer for monorepo detection.
 - [ ] Implement `apply` command for global workspace updates.
@@ -65,4 +68,4 @@
 
 - **Current Version**: 0.1.2
 - **Last Achievement**: Implemented dynamic CI/CD workflow composer (`WorkflowComposer`).
-- **Next Milestone**: Advanced CI/CD orchestration & security guardrails.
+- **Next Milestone**: YAML-only config migration + unified `find` command.

@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import chalk from "chalk";
+import { LOCAL_CONFIG_FILENAME } from "../config/defaults";
 
 /**
  * WorkspaceValidator — Checks if the current workspace is bootstrapped.
@@ -15,7 +16,7 @@ export class WorkspaceValidator {
     const required = [
       path.join(targetDir, ".agents", "skills"),
       path.join(targetDir, ".specs"),
-      path.join(targetDir, "sdd.config.json")
+      path.join(targetDir, LOCAL_CONFIG_FILENAME),
     ];
 
     return required.every(p => fs.existsSync(p));
