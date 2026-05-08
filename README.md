@@ -2,34 +2,39 @@
 
 > [!WARNING]
 > **Project Status: BETA**
-> This project is currently in Beta. You may encounter bugs or breaking changes. We encourage you to report any issues and contribute to its evolution.
+> We are shaping the future of AI-Assisted Engineering. Join us in evolving this engine!
 
-**The Intelligent Spec-Driven Development Engine for Modern Engineering Teams.**
+**The Universal Bridge Between Human Intent and AI Execution.**
 
-`@digitalelvis/sdd-workspace` is a high-performance CLI designed to bootstrap and manage "AI-Friendly" ecosystems. It transforms your repository into a structured Spec-Driven Development (SDD) environment by automatically detecting your technology stack and injecting precision-engineered AI instructions, linter rules, and standardized directory structures.
-
----
-
-## 💎 Core Philosophy
-
-Spec-Driven Development (SDD) is a methodology that prioritizes **structural planning** over **code generation**. This CLI ensures that your AI agents (Cursor, Windsurf, Claude Code, etc.) operate as high-level engineers rather than simple autocomplete engines.
-
-- **Intelligent Autonomy**: Detects hybrid stacks (e.g., Next.js + Prisma + Tailwind) and harmonizes rules.
-- **Config-First Architecture**: Uses a 4-layer configuration hierarchy for maximum flexibility.
-- **Project DNA Tracking**: We treat AI rules as code. We commit instructions to Git to ensure team consistency.
+`sdd-workspace` is a high-performance CLI designed to level up how developers and teams build software. It is a **standardization engine** that ensures every member of your team—from Junior to Staff Engineer—delivers code that respects the project's architecture, patterns, and domain rules.
 
 ---
 
-## 🚀 How to Use
+## 💎 The Philosophy: Engineering Excellence for Everyone
+
+In the AI era, the bottleneck is no longer "how to code," but **"how to design."** Most AI tools fail because they lack architectural context. **Spec-Driven Development (SDD)** solves this by prioritizing structural planning over raw generation.
+
+### Why SDD Workspace?
+
+*   **📈 Level Up Your Team**: It acts as an invisible mentor. By injecting precision-engineered rules, it guides developers of all levels to follow senior-level patterns, reducing architectural errors and technical debt.
+*   **🪙 Token Efficiency & Cost Optimization**: Stop wasting money on bloated prompts. By using a modular "Skills" and "Rules" system, the engine only provides the necessary context for each task. This minimizes context-window noise, prevents AI "forgetfulness," and drastically reduces token consumption in every request.
+*   **🤖 Multi-Agent Orchestration**: Seamlessly coordinate between different AI personalities (e.g., a *Cutter* for code, a *Linter* for quality, and an *Architect* for specs). The workspace creates a unified environment where different agents (Cursor, Windsurf, Claude Code) can collaborate without conflicting instructions.
+*   **🎯 Zero-Hallucination Context**: Turn your AI agents into domain experts. The CLI automatically detects your stack (Next.js, Laravel, React, etc.) and harmonizes rules so the AI understands your specific **Project DNA**.
+*   **⚡ Faster Delivery, Better Quality**: Stop the "prompt-error-fix" cycle. By defining specs first, your first iteration is closer to the final product, drastically reducing lead time and rework.
+*   **🤝 Unified Standards (Git-Synced)**: Eliminate "Shadow Architecture." All AI instructions and skills are committed to Git. Your team stays in sync, ensuring consistent output across the entire repository.
+
+---
+
+## 🚀 Getting Started
 
 ### 1. Global Usage (Recommended)
-
-Install the package globally to access the `sdd` command in any project on your machine. This is the best way to maintain productivity, allowing you to apply your favorite configurations instantly.
-
-#### Installation
+Install globally to apply your favorite configurations and "scaffolders" instantly to any project.
 
 ```bash
-npm install -g @digitalelvis/sdd-workspace
+npm install -g sdd-workspace
+
+# Initialize in your project
+sdd init
 ```
 
 #### Initializing an SDD Workspace in a project
@@ -57,7 +62,7 @@ If you wish to use the tool without performing a global installation, you can ru
 
 ```bash
 cd /your-project
-npx @digitalelvis/sdd-workspace init
+npx sdd-workspace init
 ```
 
 ---
@@ -69,7 +74,7 @@ To test source code changes or contribute to the project:
 ```bash
 # Clone the repository
 git clone https://github.com/digitalelvis/sdd-workspace.git
-cd ai-sdd-workspace
+cd sdd-workspace
 
 # npm install also runs `prepare`, which installs Husky git hooks
 npm install
@@ -133,4 +138,4 @@ Refer to the [CONTRIBUTING.md](./CONTRIBUTING.md) guide for architecture details
 
 ---
 
-_Built with ❤️ for the next generation of AI-Native Engineers._
+Built with ❤️ to empower the next generation of AI-Augmented Engineering and Development.

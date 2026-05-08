@@ -18,7 +18,7 @@ Before making any complex changes, you **MUST** follow the `.agents/skills/spec-
 > **Guidance for AI Coding Agents when working with code in this repository.**
 
 Welcome, AI Agent (Antigravity, Cursor, Windsurf, Copilot, etc).
-When executing tasks within this repository (`@digitalelvis/sdd-workspace`), you **MUST** adhere to the following behavioral and structural directives.
+When executing tasks within this repository (`sdd-workspace`), you **MUST** adhere to the following behavioral and structural directives.
 
 ## 1. Behavioral Defaults
 
