@@ -19,6 +19,7 @@
           { "type": "fix", "section": "🩹 Fixes" },
           { "type": "refactor", "section": "✨ Refactors" },
           { "type": "docs", "section": "📖 Documentation" },
+          { "type": "perf", "section": "⚡ Performance" },
           { "type": "chore", "hidden": true },
           { "type": "test", "hidden": true }
         ]
