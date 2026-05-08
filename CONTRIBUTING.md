@@ -1,9 +1,9 @@
 ---
-title: Contributing to SDD Workspace (@digitalelvis/sdd-workspace)
+title: Contributing to SDD Workspace (sdd-workspace)
 description: Guidelines and architectural documentation for contributing to the sdd CLI ecosystem.
 ---
 
-First of all, thank you for taking the time to dedicate your engineering skills (or agentic capabilities) to contribute to `@digitalelvis/sdd-workspace`! 🎉
+First of all, thank you for taking the time to dedicate your engineering skills (or agentic capabilities) to contribute to `sdd-workspace`! 🎉
 
 > **Note**: This document provides all the necessary information to get your local development environment set up, understand our Engine architecture via diagrams, and safely submit your Pull Requests under our governance structure.
 
