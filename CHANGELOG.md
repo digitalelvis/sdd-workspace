@@ -41,6 +41,49 @@ Co-authored-by: Cursor <cursoragent@cursor.com>
 - update README, CONTRIBUTING, and codebase specs for v0.1.2 ([12873a4](https://github.com/digitalelvis/sdd-workspace/commit/12873a479459f2a6ea6e526af882dc46eab5784a))
 - update roadmap with phase 2 achievements ([b22aa1f](https://github.com/digitalelvis/sdd-workspace/commit/b22aa1f5ff9886cf072a196f41d5259dfa811a65))
 
+## [0.1.2](https://github.com/digitalelvis/sdd-workspace/compare/0.1.0...0.1.2) (2026-05-08)
+
+### ⚠ BREAKING CHANGES
+
+- **config,cli:** workspace config file is now sdd.yml (was sdd.config.json);
+  global config is now ~/.sddrc.yml (was ~/.sddrc.json); sdd find replaces sdd find-skills
+
+Co-authored-by: Cursor <cursoragent@cursor.com>
+
+### 🚀 Features
+
+- **analyzer:** expand framework detection and add workspace validation ([e683595](https://github.com/digitalelvis/sdd-workspace/commit/e683595d2a9f52296c08ee648bb97a863e242756))
+- **ci:** add automated release workflow on merge to main ([fc0db97](https://github.com/digitalelvis/sdd-workspace/commit/fc0db97aac2ac262e47bed2ae105d4918573826c))
+- **cicd:** implement dynamic workflow composer for GitHub Actions ([82755eb](https://github.com/digitalelvis/sdd-workspace/commit/82755ebbef10427560d64f84b6efd81641f6251b))
+- **cli:** implement find-skills command and provider discovery ([08c5975](https://github.com/digitalelvis/sdd-workspace/commit/08c597585c853273f4f0d3efc28eba75e608d269))
+- **config,cli:** migrate to YAML config and add unified find command ([cd55438](https://github.com/digitalelvis/sdd-workspace/commit/cd554381747d1e468a4b7e725f01548113a04bce))
+- **engine:** implement modular rule management and refactor SDDEngine ([327ce7d](https://github.com/digitalelvis/sdd-workspace/commit/327ce7d48b3d6ca23e3a1e1545754f2ee0b29513))
+- **git:** dynamic Git Strategy Selection via Registry ([27906c1](https://github.com/digitalelvis/sdd-workspace/commit/27906c17d3338fc8db629bd4730c46f343f94ab9))
+- implement registry-driven architecture and modular registry ([febb4d1](https://github.com/digitalelvis/sdd-workspace/commit/febb4d1aa4b8d6188a3b4267e7fa3bcad3629bf7))
+- **init:** implement context-aware multi-step wizard for init command ([041c419](https://github.com/digitalelvis/sdd-workspace/commit/041c419c264ad9bddd3168532c11007f93f398b8))
+- **registry:** implement modular database registry and registry-driven detector ([21f1384](https://github.com/digitalelvis/sdd-workspace/commit/21f138471cb2d085fef359ae5ea344a8203668dd))
+- **registry:** implement tools and concerns registry with existence checker ([f144d41](https://github.com/digitalelvis/sdd-workspace/commit/f144d41d7842171f49ff8d512a946a6de218a0f7))
+- unified skill provisioning and init command improvements for v0.1.1 ([4831948](https://github.com/digitalelvis/sdd-workspace/commit/4831948b30fb6c3022e25f35adcdf377fc9b1580))
+
+### 🩹 Fixes
+
+- **ci:** allow release line branches (vX.Y.x) in branch-governance check ([c871fa3](https://github.com/digitalelvis/sdd-workspace/commit/c871fa3e4d9ee5b061e607845e179ed52aac570a))
+- **sdd:** rename AGENT.md to AGENTS.md and inject orchestration block on existing files ([977e7e1](https://github.com/digitalelvis/sdd-workspace/commit/977e7e19cea6b6b8af929bd0fd7be11babb5de92))
+
+### ✨ Refactors
+
+- **engine:** extract ResourceProvisioner from SDDEngine ([17e2901](https://github.com/digitalelvis/sdd-workspace/commit/17e29019b948bb46d6fca0c84b146f6eea474912))
+- **engine:** unified resource resolution via ResourcePathUtils ([ec6f2c0](https://github.com/digitalelvis/sdd-workspace/commit/ec6f2c030574af3029a13d5e203e8ddbb79ec4fb))
+- **registry:** align git strategy implementation with resource provisioner ([be4d407](https://github.com/digitalelvis/sdd-workspace/commit/be4d407198c8ca57c75bb57d2d4346446b0f02a8))
+
+### 📖 Documentation
+
+- **cli:** update README with find-skills command ([d4d36ff](https://github.com/digitalelvis/sdd-workspace/commit/d4d36ff4e094b1591a6c28220f631e4cd9010963))
+- **roadmap:** update roadmap and state for 0.1.2 completion ([4143f41](https://github.com/digitalelvis/sdd-workspace/commit/4143f411a72bfe71783999e7d5aec2fdbb02255d))
+- **specs:** update ARCHITECTURE.md and feature specs status to completed ([4289eca](https://github.com/digitalelvis/sdd-workspace/commit/4289ecafbc69706965f6f10402251328a5b24a32))
+- update README, CONTRIBUTING, and codebase specs for v0.1.2 ([12873a4](https://github.com/digitalelvis/sdd-workspace/commit/12873a479459f2a6ea6e526af882dc46eab5784a))
+- update roadmap with phase 2 achievements ([b22aa1f](https://github.com/digitalelvis/sdd-workspace/commit/b22aa1f5ff9886cf072a196f41d5259dfa811a65))
+
 ## [0.1.2](https://github.com/digitalelvis/sdd-workspace/compare/0.1.0...0.1.0) (2026-05-08)
 
 ### ⚠ BREAKING CHANGES
