@@ -42,13 +42,17 @@ jobs:
       - name: Check if release tag already exists
         id: tag_check
         run: |
-          VERSION="v${{ steps.pkg.outputs.version }}"
-          if git tag --list | grep -qx "$VERSION"; then
+          VERSION="${{ steps.pkg.outputs.version }}"
+          V_TAG="v$VERSION"
+          if git tag --list | grep -qx "$VERSION" || git tag --list | grep -qx "$V_TAG"; then
             echo "exists=true" >> $GITHUB_OUTPUT
-            echo "⏭️  Tag $VERSION already exists — skipping release."
+            echo "⏭️  Tag $VERSION or $V_TAG already exists — skipping release."
+          elif gh release view "$VERSION" >/dev/null 2>&1 || gh release view "$V_TAG" >/dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "⏭️  GitHub release for $VERSION/$V_TAG already exists — skipping release."
           else
             echo "exists=false" >> $GITHUB_OUTPUT
-            echo "🏷️  Tag $VERSION not found — proceeding with release."
+            echo "🏷️  No tag/release found for $VERSION — proceeding with release."
           fi
 
       - name: Generate changelog, tag and create GitHub Release
