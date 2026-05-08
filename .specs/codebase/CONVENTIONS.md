@@ -14,8 +14,10 @@
 ## Git Standards
 
 - **Conventional Commits**: Use `feat:`, `fix:`, `refactor:`, `docs:`, `chore:`, `perf:`, `test:`.
-- **Branching**: Develop in `feat/` or `fix/` branches. Never push directly to `main`.
-- **Governance**: Atomic commits. One task per commit.
+  Rules are defined in `commitlint.config.js` and enforced automatically by the `commit-msg` Husky hook.
+- **Branching**: Develop in `feat/` or `fix/` branches off the active `vX.Y.x` release line. Never push directly to `main`.
+- **Governance**: Atomic commits. One task per commit. See `.agents/rules/git-governance.md` for the full branching model.
+- **Pre-commit**: `lint-staged` runs ESLint + Prettier on staged `src/` files before every commit.
 
 ## Directory Structure Mirroring
 

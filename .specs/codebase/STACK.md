@@ -13,6 +13,8 @@
 - **Linter**: [ESLint](https://eslint.org/) with TypeScript support
 - **Formatter**: [Prettier](https://prettier.io/)
 - **Git Hooks**: [Husky](https://typicode.github.io/husky/) + [lint-staged](https://github.com/okonet/lint-staged)
+- **Commit Linting**: [@commitlint/cli](https://commitlint.js.org/) + `@commitlint/config-conventional`
+- **Config format**: [js-yaml](https://github.com/nodeca/js-yaml) — workspace config stored as `sdd.yml` / `~/.sddrc.yml`
 
 ## Testing
 - **Framework**: [Jest](https://jestjs.io/)

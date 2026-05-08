@@ -70,6 +70,8 @@ To test source code changes or contribute to the project:
 # Clone the repository
 git clone https://github.com/digitalelvis/sdd-workspace.git
 cd ai-sdd-workspace
+
+# npm install also runs `prepare`, which installs Husky git hooks
 npm install
 
 # Build and run locally
