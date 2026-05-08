@@ -5,20 +5,18 @@ import { NodeStackProvider } from "../../../src/scaffolder/providers/stacks/Node
 import { RegistryLoader } from "../../../src/resources/RegistryLoader";
 
 jest.mock("fs");
-jest.mock("child_process", () => ({
-  execSync: jest.fn(),
-}));
+jest.mock("child_process", () => ({ execSync: jest.fn() }));
 jest.mock("../../../src/resources/RegistryLoader");
 
 const { execSync } = require("child_process");
 
-// Mock global fetch
 global.fetch = jest.fn();
 
 describe("SDDEngine - Registry-Driven Injection", () => {
   let sddEngine: SDDEngine;
   let logSpy: jest.SpyInstance;
   let warnSpy: jest.SpyInstance;
+  let errorSpy: jest.SpyInstance;
 
   const mockRegistry = {
     skills: {
@@ -26,79 +24,77 @@ describe("SDDEngine - Registry-Driven Injection", () => {
         resource: "skill",
         mode: "cli",
         command: "npx install-skill",
-        roles: ["global"]
+        roles: ["global"],
       },
       "local-skill": {
         resource: "skill",
         mode: "local",
         path: "skills/local-skill",
-        roles: ["global"]
+        roles: ["global"],
       },
       "remote-skill": {
         resource: "skill",
         mode: "remote",
         url: "https://example.com/skill.md",
-        roles: ["global"]
+        roles: ["global"],
       },
       "git-github-skill": {
         resource: "skill",
         mode: "git",
         url: "https://github.com/owner/repo",
         subpath: "skills/git-skill",
-        roles: ["global"]
+        roles: ["global"],
       },
       "git-other-skill": {
         resource: "skill",
         mode: "git",
         url: "https://gitlab.com/owner/repo",
-        roles: ["global"]
-      }
+        roles: ["global"],
+      },
     },
     rules: {
       "engineering-rules": {
         resource: "rule",
         mode: "local",
         path: "rules/engineering-rules.md",
-        roles: ["global"]
+        roles: ["global"],
       },
       "node-rules": {
         resource: "rule",
         mode: "local",
         path: "rules/node-rules.md",
-        roles: ["backend"]
+        roles: ["backend"],
       },
       "extra-rules": {
         resource: "rule",
         mode: "local",
         path: "rules/extra-rules.md",
-        roles: ["backend"]
-      }
+        roles: ["backend"],
+      },
     },
     stacks: {
-      "nodejs": {
-        "defaultSkills": ["tlc-spec-driven"],
-        "defaultRules": ["node-rules", "extra-rules"],
-        "linterDependencies": ["eslint"]
-      }
+      nodejs: {
+        defaultSkills: ["tlc-spec-driven"],
+        defaultRules: ["node-rules", "extra-rules"],
+        linterDependencies: ["eslint"],
+      },
     },
     agents: {
-      "cursor": {
-        "ruleFile": ".cursorrules",
-        "strategy": "reference"
-      }
+      cursor: {
+        ruleFile: ".cursorrules",
+        strategy: "reference",
+      },
     },
     ides: {
-      "vscode": {
-        "configDir": ".vscode"
-      }
-    }
+      vscode: { configDir: ".vscode" },
+    },
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
     logSpy = jest.spyOn(console, "log").mockImplementation();
     warnSpy = jest.spyOn(console, "warn").mockImplementation();
-    jest.spyOn(console, "error").mockImplementation();
+    errorSpy = jest.spyOn(console, "error").mockImplementation();
     sddEngine = new SDDEngine();
     (RegistryLoader.load as jest.Mock).mockReturnValue(mockRegistry);
   });
@@ -106,25 +102,25 @@ describe("SDDEngine - Registry-Driven Injection", () => {
   afterEach(() => {
     logSpy.mockRestore();
     warnSpy.mockRestore();
+    errorSpy.mockRestore();
   });
 
-  it("should throw an error if engineering-rules is not in registry", async () => {
+  // ─── Rules provisioning ────────────────────────────────────────────────────
+
+  it("should complete without warnings when the rules registry is empty", async () => {
     const emptyRegistry = { ...mockRegistry, rules: {} };
     (RegistryLoader.load as jest.Mock).mockReturnValue(emptyRegistry);
     (fs.existsSync as jest.Mock).mockReturnValue(false);
-    
-    // It should not throw because it just warns and continues if it fails to provision, 
-    // but the test expects it to work if common rules are there.
-    // Actually, I removed the throw in SDDEngine for common rules.
+
     await sddEngine.inject("/target/dir", [], [AiAgent.CURSOR], []);
-    expect(warnSpy).not.toHaveBeenCalled(); // Should just work with default content if nothing is found
+
+    expect(warnSpy).not.toHaveBeenCalled();
   });
 
-  it("should inject rules for selected agents", async () => {
-    (fs.existsSync as jest.Mock).mockImplementation((filePath: string) => {
-      if (String(filePath).includes("engineering-rules.md")) return true;
-      return false;
-    });
+  it("should write agent rule file using the reference strategy", async () => {
+    (fs.existsSync as jest.Mock).mockImplementation((p: string) =>
+      String(p).includes("engineering-rules.md"),
+    );
     (fs.readFileSync as jest.Mock).mockReturnValue("# Common Rules");
     (fs.mkdirSync as jest.Mock).mockImplementation(() => {});
     (fs.writeFileSync as jest.Mock).mockImplementation(() => {});
@@ -133,25 +129,25 @@ describe("SDDEngine - Registry-Driven Injection", () => {
 
     expect(fs.writeFileSync).toHaveBeenCalledWith(
       expect.stringContaining(".cursorrules"),
-      expect.stringContaining("[main.md](file://./.agents/rules/main.md)")
+      expect.stringContaining("[main.md](file://./.agents/rules/main.md)"),
     );
   });
 
-  it("should concatenate multiple rules defined in defaultRules", async () => {
-    (fs.existsSync as jest.Mock).mockImplementation((filePath: string) => {
-      // Logic: First they are checked for provisioning (basePath + source), then for reading (targetDir + rulesDir + id.md)
-      if (String(filePath).includes("rules/engineering-rules.md")) return true;
-      if (String(filePath).includes("rules/node-rules.md")) return true;
-      if (String(filePath).includes("rules/extra-rules.md")) return true;
-      if (String(filePath).includes(".agents/rules/engineering-rules.md")) return true;
-      if (String(filePath).includes(".agents/rules/node-rules.md")) return true;
-      if (String(filePath).includes(".agents/rules/extra-rules.md")) return true;
-      return false;
+  it("should concatenate multiple rules defined in defaultRules into main.md", async () => {
+    (fs.existsSync as jest.Mock).mockImplementation((p: string) => {
+      return (
+        String(p).includes("rules/engineering-rules.md") ||
+        String(p).includes("rules/node-rules.md") ||
+        String(p).includes("rules/extra-rules.md") ||
+        String(p).includes(".agents/rules/engineering-rules.md") ||
+        String(p).includes(".agents/rules/node-rules.md") ||
+        String(p).includes(".agents/rules/extra-rules.md")
+      );
     });
-    (fs.readFileSync as jest.Mock).mockImplementation((filePath: string) => {
-      if (String(filePath).includes("engineering-rules.md")) return "# Common";
-      if (String(filePath).includes("node-rules.md")) return "# Node";
-      if (String(filePath).includes("extra-rules.md")) return "# Extra";
+    (fs.readFileSync as jest.Mock).mockImplementation((p: string) => {
+      if (String(p).includes("engineering-rules.md")) return "# Common";
+      if (String(p).includes("node-rules.md")) return "# Node";
+      if (String(p).includes("extra-rules.md")) return "# Extra";
       return "";
     });
     (fs.mkdirSync as jest.Mock).mockImplementation(() => {});
@@ -160,18 +156,18 @@ describe("SDDEngine - Registry-Driven Injection", () => {
 
     await sddEngine.inject("/target/dir", [new NodeStackProvider()], [AiAgent.CURSOR], []);
 
-    // Check main.md content
     expect(fs.writeFileSync).toHaveBeenCalledWith(
       expect.stringContaining("main.md"),
-      expect.stringContaining("# Common\n\n# Node\n\n# Extra")
+      expect.stringContaining("# Common\n\n# Node\n\n# Extra"),
     );
   });
 
-  it("should execute CLI command for 'cli' mode skills from registry", async () => {
-    (fs.existsSync as jest.Mock).mockImplementation((filePath: string) => {
-      if (String(filePath).includes("engineering-rules.md")) return true;
-      return false;
-    });
+  // ─── Skill provisioning modes ──────────────────────────────────────────────
+
+  it("should execute CLI command for 'cli' mode skills", async () => {
+    (fs.existsSync as jest.Mock).mockImplementation((p: string) =>
+      String(p).includes("engineering-rules.md"),
+    );
     (fs.readFileSync as jest.Mock).mockReturnValue("# Common Rules");
     (fs.mkdirSync as jest.Mock).mockImplementation(() => {});
     execSync.mockImplementation(() => {});
@@ -180,16 +176,14 @@ describe("SDDEngine - Registry-Driven Injection", () => {
 
     expect(execSync).toHaveBeenCalledWith(
       "npx install-skill",
-      expect.objectContaining({ stdio: "inherit" })
+      expect.objectContaining({ stdio: "inherit" }),
     );
   });
 
-  it("should provision 'local' mode skills by copying directory", async () => {
-    (fs.existsSync as jest.Mock).mockImplementation((filePath: string) => {
-      if (String(filePath).endsWith("engineering-rules.md")) return true;
-      if (String(filePath).includes("skills/local-skill")) return true;
-      return false;
-    });
+  it("should copy directory for 'local' mode skills", async () => {
+    (fs.existsSync as jest.Mock).mockImplementation((p: string) =>
+      String(p).endsWith("engineering-rules.md") || String(p).includes("skills/local-skill"),
+    );
     (fs.readFileSync as jest.Mock).mockReturnValue("# Content");
     (fs.mkdirSync as jest.Mock).mockImplementation(() => {});
     (fs.cpSync as jest.Mock) = jest.fn();
@@ -199,19 +193,17 @@ describe("SDDEngine - Registry-Driven Injection", () => {
     expect(fs.cpSync).toHaveBeenCalledWith(
       expect.stringContaining("skills/local-skill"),
       expect.stringContaining(".agents/skills/local-skill"),
-      expect.objectContaining({ recursive: true })
+      expect.objectContaining({ recursive: true }),
     );
   });
 
-  it("should provision 'remote' mode skills by fetching URL", async () => {
-    (fs.existsSync as jest.Mock).mockImplementation((filePath: string) => {
-      if (String(filePath).includes("engineering-rules.md")) return true;
-      return false;
-    });
+  it("should fetch and write SKILL.md for 'remote' mode skills", async () => {
+    (fs.existsSync as jest.Mock).mockImplementation((p: string) =>
+      String(p).includes("engineering-rules.md"),
+    );
     (fs.readFileSync as jest.Mock).mockReturnValue("# Content");
     (fs.mkdirSync as jest.Mock).mockImplementation(() => {});
     (fs.writeFileSync as jest.Mock).mockImplementation(() => {});
-
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: true,
       text: jest.fn().mockResolvedValue("# Remote Skill Content"),
@@ -223,25 +215,22 @@ describe("SDDEngine - Registry-Driven Injection", () => {
     expect(fs.writeFileSync).toHaveBeenCalledWith(
       expect.stringContaining(".agents/skills/remote-skill/SKILL.md"),
       "# Remote Skill Content",
-      "utf-8"
+      "utf-8",
     );
   });
 
-  it("should provision 'git' mode skills via GitHub API", async () => {
-    (fs.existsSync as jest.Mock).mockImplementation((filePath: string) => {
-      if (String(filePath).includes("engineering-rules.md")) return true;
-      return false;
-    });
+  it("should use the GitHub API for 'git' mode skills on github.com", async () => {
+    (fs.existsSync as jest.Mock).mockImplementation((p: string) =>
+      String(p).includes("engineering-rules.md"),
+    );
     (fs.readFileSync as jest.Mock).mockReturnValue("# Content");
     (fs.mkdirSync as jest.Mock).mockImplementation(() => {});
     (fs.writeFileSync as jest.Mock).mockImplementation(() => {});
-
-    // Mock GitHub API responses
     (global.fetch as jest.Mock)
       .mockResolvedValueOnce({
         ok: true,
         json: jest.fn().mockResolvedValue([
-          { name: "SKILL.md", type: "file", download_url: "https://raw.../SKILL.md" }
+          { name: "SKILL.md", type: "file", download_url: "https://raw.../SKILL.md" },
         ]),
       })
       .mockResolvedValueOnce({
@@ -253,21 +242,19 @@ describe("SDDEngine - Registry-Driven Injection", () => {
 
     expect(global.fetch).toHaveBeenCalledWith(
       expect.stringContaining("api.github.com/repos/owner/repo/contents/skills/git-skill"),
-      expect.any(Object)
+      expect.any(Object),
     );
     expect(fs.writeFileSync).toHaveBeenCalledWith(
       expect.stringContaining(".agents/skills/git-github-skill/SKILL.md"),
       "# GitHub Skill Content",
-      "utf-8"
+      "utf-8",
     );
   });
 
-  it("should provision 'git' mode skills via clone for non-GitHub URLs", async () => {
-    (fs.existsSync as jest.Mock).mockImplementation((filePath: string) => {
-      if (String(filePath).endsWith("engineering-rules.md")) return true;
-      if (String(filePath).includes(".sdd-temp-skill")) return true;
-      return false;
-    });
+  it("should git-clone for 'git' mode skills on non-GitHub hosts", async () => {
+    (fs.existsSync as jest.Mock).mockImplementation((p: string) =>
+      String(p).endsWith("engineering-rules.md") || String(p).includes(".sdd-temp-skill"),
+    );
     (fs.readFileSync as jest.Mock).mockReturnValue("# Content");
     (fs.mkdirSync as jest.Mock).mockImplementation(() => {});
     (fs.cpSync as jest.Mock) = jest.fn();
@@ -278,9 +265,82 @@ describe("SDDEngine - Registry-Driven Injection", () => {
 
     expect(execSync).toHaveBeenCalledWith(
       expect.stringContaining("git clone --depth 1 https://gitlab.com/owner/repo"),
-      expect.any(Object)
+      expect.any(Object),
     );
     expect(fs.cpSync).toHaveBeenCalled();
     expect(fs.rmSync).toHaveBeenCalled();
+  });
+
+  // ─── AGENTS.md generation ──────────────────────────────────────────────────
+
+  it("should generate AGENTS.md with substitutions applied when the file does not exist", async () => {
+    const template = "# AGENTS.md\n{{STACKS}}\n{{DATABASES}}\n{{AGENTS}}\n{{SKILLS}}\n{{SKILLS_LIST}}\n{{DB_STRATEGY}}";
+
+    (fs.existsSync as jest.Mock).mockImplementation((p: string) => {
+      if (String(p).includes("agent-template.md")) return true;
+      if (String(p).includes("engineering-rules.md")) return true;
+      return false;
+    });
+    (fs.readFileSync as jest.Mock).mockReturnValue(template);
+    (fs.mkdirSync as jest.Mock).mockImplementation(() => {});
+    (fs.writeFileSync as jest.Mock).mockImplementation(() => {});
+
+    await sddEngine.inject("/target/dir", [], [AiAgent.CURSOR], []);
+
+    const call = (fs.writeFileSync as jest.Mock).mock.calls.find((c) =>
+      String(c[0]).endsWith("AGENTS.md"),
+    );
+    expect(call).toBeDefined();
+    expect(String(call![1])).not.toContain("{{STACKS}}");
+    expect(String(call![1])).not.toContain("{{DATABASES}}");
+  });
+
+  it("should inject orchestration block into an existing AGENTS.md", async () => {
+    const existingContent = "# My Project\n\nSome existing guidance.";
+
+    (fs.existsSync as jest.Mock).mockImplementation((p: string) => {
+      if (String(p).includes("AGENTS.md")) return true;
+      if (String(p).includes("engineering-rules.md")) return true;
+      return false;
+    });
+    (fs.readFileSync as jest.Mock).mockImplementation((p: string) =>
+      String(p).includes("AGENTS.md") ? existingContent : "# Content",
+    );
+    (fs.mkdirSync as jest.Mock).mockImplementation(() => {});
+    (fs.writeFileSync as jest.Mock).mockImplementation(() => {});
+
+    await sddEngine.inject("/target/dir", [], [AiAgent.CURSOR], []);
+
+    const call = (fs.writeFileSync as jest.Mock).mock.calls.find((c) =>
+      String(c[0]).endsWith("AGENTS.md"),
+    );
+    expect(call).toBeDefined();
+    expect(String(call![1])).toContain("## 1. Orchestration & Planning");
+    expect(String(call![1])).toContain("spec-driven");
+    expect(String(call![1])).toContain("# My Project");
+    expect(String(call![1])).toContain("Some existing guidance.");
+  });
+
+  it("should not re-inject the orchestration block when already present in AGENTS.md (idempotent)", async () => {
+    const alreadyInjected =
+      "# My Agents\n\n## 1. Orchestration & Planning (Orchestrator)\n\nAlready here.\n";
+
+    (fs.existsSync as jest.Mock).mockImplementation((p: string) => {
+      if (String(p).includes("AGENTS.md")) return true;
+      if (String(p).includes("engineering-rules.md")) return true;
+      return false;
+    });
+    (fs.readFileSync as jest.Mock).mockImplementation((p: string) =>
+      String(p).includes("AGENTS.md") ? alreadyInjected : "# Content",
+    );
+    (fs.mkdirSync as jest.Mock).mockImplementation(() => {});
+    (fs.writeFileSync as jest.Mock).mockImplementation(() => {});
+
+    await sddEngine.inject("/target/dir", [], [AiAgent.CURSOR], []);
+
+    const call = (fs.writeFileSync as jest.Mock).mock.calls.find((c) =>
+      String(c[0]).endsWith("AGENTS.md"),
+    );
+    expect(call).toBeUndefined();
   });
 });

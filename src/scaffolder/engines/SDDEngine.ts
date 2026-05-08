@@ -48,7 +48,7 @@ export class SDDEngine {
     await this.provisionSkills(targetDir, allSkills, registry, agentsSkillsDestDir, basePath);
 
     // 5. Generate Orchestration Documentation
-    await this.generateAgentMd(targetDir, basePath, {
+    await this.generateAgentsMd(targetDir, basePath, {
       stacks: stackProviders.map(p => p.stack),
       databases: database || [],
       agents: selectedAgents,
@@ -249,31 +249,83 @@ export class SDDEngine {
     }
   }
 
-  private async generateAgentMd(targetDir: string, basePath: string, context: any) {
+  private async generateAgentsMd(targetDir: string, basePath: string, context: any) {
+    const targetPath = path.join(targetDir, "AGENTS.md");
+    const orchestrationBlock = this.buildOrchestrationBlock();
+
+    if (fs.existsSync(targetPath)) {
+      this.injectOrchestrationBlock(targetPath, orchestrationBlock);
+      return;
+    }
+
     const templatePath = path.join(basePath, "agent-template.md");
     if (!fs.existsSync(templatePath)) return;
 
     let content = fs.readFileSync(templatePath, "utf-8");
 
-    // Replacements
     content = content.replace("{{STACKS}}", context.stacks.join(", ") || "Generic NodeJS");
     content = content.replace("{{DATABASES}}", context.databases.join(", ") || "Not specified");
     content = content.replace("{{AGENTS}}", context.agents.join(", ") || "Generic AI Agent");
     content = content.replace("{{SKILLS}}", context.skills.length + " managed skills");
-    
-    const skillsList = context.skills.map((s: string) => `- [${s}](file://./.agents/skills/${s}/SKILL.md)`).join("\n");
+
+    const skillsList = context.skills
+      .map((s: string) => `- [${s}](file://./.agents/skills/${s}/SKILL.md)`)
+      .join("\n");
     content = content.replace("{{SKILLS_LIST}}", skillsList || "_No specialized skills installed._");
-    
-    const dbStrategy = context.databases.length > 0 
-      ? `Follow best practices for ${context.databases.join(" and ")}.`
-      : "Standard data persistence patterns.";
+
+    const dbStrategy =
+      context.databases.length > 0
+        ? `Follow best practices for ${context.databases.join(" and ")}.`
+        : "Standard data persistence patterns.";
     content = content.replace("{{DB_STRATEGY}}", dbStrategy);
 
-    // Determine target filename (safe-guarding)
-    const targetPath = path.join(targetDir, "AGENT.md");
-    const finalPath = fs.existsSync(targetPath) ? path.join(targetDir, "AGENT.md.example") : targetPath;
+    fs.writeFileSync(targetPath, content, "utf-8");
+    console.log(chalk.green(`✔️  Generated AGENTS.md for AI orchestration.`));
+  }
 
-    fs.writeFileSync(finalPath, content, "utf-8");
-    console.log(chalk.green(`✔️  Generated ${path.basename(finalPath)} for AI orchestration.`));
+  /**
+   * Injects the SDD orchestration block into an existing AGENTS.md.
+   * Inserts right after the YAML frontmatter (if present) or the first heading.
+   * Idempotent — skips if the block is already present.
+   */
+  private injectOrchestrationBlock(filePath: string, block: string): void {
+    const content = fs.readFileSync(filePath, "utf-8");
+
+    if (content.includes("## 1. Orchestration & Planning")) {
+      return;
+    }
+
+    let insertionIndex = 0;
+
+    if (content.startsWith("---")) {
+      const closingFence = content.indexOf("\n---", 3);
+      if (closingFence !== -1) {
+        insertionIndex = closingFence + 4;
+      }
+    } else {
+      const firstNewline = content.indexOf("\n");
+      if (firstNewline !== -1) {
+        insertionIndex = firstNewline + 1;
+      }
+    }
+
+    const updated =
+      content.slice(0, insertionIndex) +
+      "\n" + block + "\n\n" +
+      content.slice(insertionIndex);
+
+    fs.writeFileSync(filePath, updated, "utf-8");
+    console.log(chalk.green(`✔️  Injected SDD orchestration block into existing AGENTS.md.`));
+  }
+
+  private buildOrchestrationBlock(): string {
+    return `## 1. Orchestration & Planning (Orchestrator)
+
+Before making any complex changes, you **MUST** follow the \`.agents/skills/spec-driven\` workflow.
+
+- **Primary Source of Truth**: \`.specs/\` (Codebase, Requirements, Roadmap, State).
+- **Core Workflow**:
+  1. **Specify**: Define what we are doing in \`.specs/features/\`.
+  1. **Always document**: Always keep your documentation, status, roadmap, and features up to date.`;
   }
 }

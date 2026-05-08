@@ -1,4 +1,4 @@
-# AGENT.md
+# AGENTS.md
 
 Welcome, AI Agent. You are operating in a **Spec-Driven Development (SDD)** workspace. Your goal is to be a powerful, efficient, and precise software engineer.
 
@@ -20,7 +20,7 @@ You MUST follow this flow for all non-trivial tasks:
 - **Skill Usage**: Use `tlc-spec-driven` or `architect-review` for initial validation.
 
 ### Phase 2: Implementation
-- Follow the architectural patterns defined in `AGENT.md` and related skills.
+- Follow the architectural patterns defined in `AGENTS.md` and related skills.
 - **Skill Usage**: Use `{{STACK}}-best-practices` and `clean-code` skills.
 
 ### Phase 3: Verification
@@ -35,7 +35,7 @@ You MUST follow this flow for all non-trivial tasks:
 - **Documentation**: All public APIs and complex logic must be documented using JSDoc/TSDoc.
 
 ## 4. Agent Guidelines
-- **Autonomous Updates**: Whenever you make an architectural decision or change a core pattern, you MUST update this `AGENT.md` to reflect the new state.
+- **Autonomous Updates**: Whenever you make an architectural decision or change a core pattern, you MUST update this `AGENTS.md` to reflect the new state.
 - **No Magic Strings**: Use Enums and Constants.
 - **SDD First**: Never write code without a clear spec or task.
 

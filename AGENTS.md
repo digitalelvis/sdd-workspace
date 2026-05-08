@@ -2,6 +2,16 @@
 title: Guidance for AI Coding Agents
 description: Required instructions for any LLM interacting with this repository.
 ---
+## 1. Orchestration & Planning (Orchestrator)
+
+Before making any complex changes, you **MUST** follow the `.agents/skills/spec-driven` workflow.
+
+- **Primary Source of Truth**: `.specs/` (Codebase, Requirements, Roadmap, State).
+- **Core Workflow**:
+  1. **Specify**: Define what we are doing in `.specs/features/`.
+  1. **Always document**: Always keep your documentation, status, roadmap, and features up to date.
+
+
 
 # AGENTS.md
 
