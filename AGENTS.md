@@ -2,6 +2,7 @@
 title: Guidance for AI Coding Agents
 description: Required instructions for any LLM interacting with this repository.
 ---
+
 ## 1. Orchestration & Planning (Orchestrator)
 
 Before making any complex changes, you **MUST** follow the `.agents/skills/spec-driven` workflow.
@@ -10,8 +11,6 @@ Before making any complex changes, you **MUST** follow the `.agents/skills/spec-
 - **Core Workflow**:
   1. **Specify**: Define what we are doing in `.specs/features/`.
   1. **Always document**: Always keep your documentation, status, roadmap, and features up to date.
-
-
 
 # AGENTS.md
 
@@ -27,7 +26,7 @@ When executing tasks within this repository (`@digitalelvis/sdd-workspace`), you
 - **Verification is Law**: Never mark a task as complete without proving it works. Run `npm run test` or compile via `npm run build` to verify logic integrity.
 - **SDD First**: We are building a Spec-Driven Development CLI. Apply the same rigorous SDD mindset to your own code modifications. Think structurally before generating.
 - **No Magic Strings**: Domain logic must reside in Enums (`IdeEnvironment`, `SupportedStack`), not hardcoded strings.
-- **Git Strategy Awareness**: This project **commits** AI rules (`.cursorrules`, `.agents/skills/`) as project DNA. Only ephemeral cache files (`.cursor/`, `.windsurf/`) are ignored.
+- **Git Strategy Awareness**: This CLI ships canonical rules/skills from `src/resources/`. **Generated consumer workspaces** keep `.agents/` out of Git by default (via `.agents/.gitignore`). Workspace intent (`skills`, stacks, agents) lives in **`sdd.yml`**; validate with **`sdd doctor`**; future CLI sync (`agents pull`) — see roadmap **0.1.3**. No **`sdd-lock.yml`** in this milestone. Root `.gitignore` is not altered by scaffold. Ephemeral IDE caches (`.cursor/`, `.windsurf/`) stay ignored.
 
 ## 2. Repository Overview
 

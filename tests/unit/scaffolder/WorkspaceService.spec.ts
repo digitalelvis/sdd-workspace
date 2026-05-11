@@ -73,4 +73,36 @@ describe("Scaffolder - WorkspaceService", () => {
     const orchestrator = new WorkspaceService();
     expect(orchestrator.hasLocalConfig("/fake/dir")).toBe(true);
   });
+
+  it("should not mutate the target root .gitignore during execute", async () => {
+    (fs.existsSync as jest.Mock).mockReturnValue(true);
+    (fs.readFileSync as jest.Mock).mockReturnValue("mocked-content");
+    (fs.cpSync as jest.Mock).mockImplementation(() => {});
+    (fs.writeFileSync as jest.Mock).mockImplementation(() => {});
+    (fs.appendFileSync as jest.Mock).mockImplementation(() => {});
+    (fs.mkdirSync as jest.Mock).mockImplementation(() => {});
+
+    const orchestrator = new WorkspaceService();
+
+    const resolvedConfig: WorkspaceConfig = {
+      stacks: [SupportedStack.NODEJS],
+      agents: [AiAgent.CURSOR],
+      ide: "none",
+      lint: false,
+      skills: { include: ["tlc-spec-driven"], exclude: [] },
+      linterDependencies: ["eslint"],
+      ruleTemplates: { [SupportedStack.NODEJS]: "node-rules.md" }
+    };
+
+    await expect(orchestrator.execute("/fake/dir", resolvedConfig)).resolves.not.toThrow();
+
+    expect(fs.appendFileSync).not.toHaveBeenCalledWith(
+      expect.stringMatching(/\/fake\/dir\/\.gitignore$/),
+      expect.anything()
+    );
+    expect(fs.writeFileSync).not.toHaveBeenCalledWith(
+      expect.stringMatching(/\/fake\/dir\/\.gitignore$/),
+      expect.anything()
+    );
+  });
 });

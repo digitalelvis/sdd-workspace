@@ -1,6 +1,6 @@
 {
-  "name": "@digitalelvis/sdd-workspace",
-  "version": "0.1.2",
+  "name": "sdd-workspace",
+  "version": "0.1.3",
   "description": "SDD Enginee for Workspaces",
   "author": {
     "name": "Elvis Lopes",

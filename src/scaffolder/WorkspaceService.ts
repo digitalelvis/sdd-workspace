@@ -28,7 +28,10 @@ export class WorkspaceService {
    * Execute the full workspace provisioning pipeline.
    * Accepts a fully resolved WorkspaceConfig from the ConfigResolver.
    */
-  public async execute(targetDir: string, resolved: WorkspaceConfig): Promise<void> {
+  public async execute(
+    targetDir: string,
+    resolved: WorkspaceConfig,
+  ): Promise<void> {
     try {
       const stacks = resolved.stacks ?? [];
       const agents: AiAgent[] = resolved.agents ?? [];
@@ -40,7 +43,10 @@ export class WorkspaceService {
       const stackProviders = this.resolveStackProviders(stacks);
 
       // 2. Provision physical ecosystem (Lint, local config folders)
-      this.ecosystemEngine.setup(targetDir, stackProviders, ide, { skipLint, linterDependencies });
+      this.ecosystemEngine.setup(targetDir, stackProviders, ide, {
+        skipLint,
+        linterDependencies,
+      });
 
       // 3. Inject SDD rules and skills (using merged skill list from config)
       const skillsToInject = resolved.skills?.include ?? [];
@@ -51,25 +57,29 @@ export class WorkspaceService {
         skillsToInject,
         resolved.database,
         resolved.ruleTemplates,
-        resolved.gitStrategy
+        resolved.gitStrategy,
       );
 
-      // 4. Ensure gitignore has correct AI workspace rules
-      this.ensureGitignore(targetDir);
-
-      // 5. Initialize root .specs folder
+      // 4. Initialize root .specs folder
       const rootSpecsDir = path.join(targetDir, ".specs");
       if (!fs.existsSync(rootSpecsDir)) {
         fs.mkdirSync(rootSpecsDir, { recursive: true });
-        console.log(chalk.green("✔️  Initialized workspace root specifications directory at .specs/"));
+        console.log(
+          chalk.green(
+            "✔️  Initialized workspace root specifications directory at .specs/",
+          ),
+        );
       }
 
-      // 6. Provision CI/CD
+      // 5. Provision CI/CD
       if (resolved.generateCICD) {
         this.workflowComposer.compose(targetDir, resolved);
       }
     } catch (error) {
-      console.error(chalk.red("\n❌ Critical Exception during Injection:"), error);
+      console.error(
+        chalk.red("\n❌ Critical Exception during Injection:"),
+        error,
+      );
     }
   }
 
@@ -86,7 +96,11 @@ export class WorkspaceService {
   public writeLocalConfig(targetDir: string, config: object): void {
     const configPath = path.join(targetDir, LOCAL_CONFIG_FILENAME);
     YamlParser.write(configPath, config);
-    console.log(chalk.green(`✔️  Workspace configuration saved to ${LOCAL_CONFIG_FILENAME}`));
+    console.log(
+      chalk.green(
+        `✔️  Workspace configuration saved to ${LOCAL_CONFIG_FILENAME}`,
+      ),
+    );
   }
 
   // ─── Private helpers ─────────────────────────────────────────────────────
@@ -94,51 +108,19 @@ export class WorkspaceService {
   public resolveStackProviders(stacks: SupportedStack[]): StackProvider[] {
     const registry = RegistryLoader.load();
     const providers: StackProvider[] = [];
-    
+
     for (const stack of stacks) {
       const stackDef = registry.stacks[stack];
       if (stackDef) {
         providers.push(new GenericStackProvider(stack, stackDef));
       } else {
-        console.warn(chalk.yellow(`⚠️ No registry definition found for stack: ${stack}`));
+        console.warn(
+          chalk.yellow(`⚠️ No registry definition found for stack: ${stack}`),
+        );
         // Fallback to a basic Node provider or similar if needed
         providers.push(new NodeStackProvider());
       }
     }
     return providers;
-  }
-
-  private ensureGitignore(targetDir: string): void {
-    const gitignorePath = path.join(targetDir, ".gitignore");
-    const marker = "# SDD: AI & Environment Agent Configuration";
-    const aiIgnoreBlock = `
-# ==========================================
-${marker}
-# ==========================================
-# Ignore agent cache/session state (ephemeral, may contain sensitive paths)
-.cursor/
-.windsurf/
-.vscode/
-.claude/
-.antigravity/
-.agent/
-.agents/
-
-# Keep these tracked (project DNA):
-!/.agents/rules/
-!/.agents/skills/
-!/.specs/
-`;
-
-    if (fs.existsSync(gitignorePath)) {
-      const content = fs.readFileSync(gitignorePath, "utf-8");
-      if (!content.includes(marker)) {
-        fs.appendFileSync(gitignorePath, aiIgnoreBlock);
-        console.log(chalk.green("✔️  Appended AI workspace rules to .gitignore."));
-      }
-    } else {
-      fs.writeFileSync(gitignorePath, aiIgnoreBlock.trim() + "\n");
-      console.log(chalk.green("✔️  Created .gitignore with AI workspace rules."));
-    }
   }
 }

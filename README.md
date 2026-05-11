@@ -1,8 +1,7 @@
 # SDD Workspace 🚀
 
-> [!WARNING]
-> **Project Status: BETA**
-> This project is currently in Beta. You may encounter bugs or breaking changes. We encourage you to report any issues and contribute to its evolution.
+> [!WARNING] > **Project Status: BETA**
+> We are shaping the future of AI-Assisted Engineering. Join us in evolving this engine!
 
 **The Intelligent Spec-Driven Development Engine for Modern Engineering Teams.**
 
@@ -14,9 +13,14 @@
 
 Spec-Driven Development (SDD) is a methodology that prioritizes **structural planning** over **code generation**. This CLI ensures that your AI agents (Cursor, Windsurf, Claude Code, etc.) operate as high-level engineers rather than simple autocomplete engines.
 
-- **Intelligent Autonomy**: Detects hybrid stacks (e.g., Next.js + Prisma + Tailwind) and harmonizes rules.
-- **Config-First Architecture**: Uses a 4-layer configuration hierarchy for maximum flexibility.
-- **Project DNA Tracking**: We treat AI rules as code. We commit instructions to Git to ensure team consistency.
+### Why SDD Workspace?
+
+- **📈 Level Up Your Team**: It acts as an invisible mentor. By injecting precision-engineered rules, it guides developers of all levels to follow senior-level patterns, reducing architectural errors and technical debt.
+- **🪙 Token Efficiency & Cost Optimization**: Stop wasting money on bloated prompts. By using a modular "Skills" and "Rules" system, the engine only provides the necessary context for each task. This minimizes context-window noise, prevents AI "forgetfulness," and drastically reduces token consumption in every request.
+- **🤖 Multi-Agent Orchestration**: Seamlessly coordinate between different AI personalities (e.g., a _Cutter_ for code, a _Linter_ for quality, and an _Architect_ for specs). The workspace creates a unified environment where different agents (Cursor, Windsurf, Claude Code) can collaborate without conflicting instructions.
+- **🎯 Zero-Hallucination Context**: Turn your AI agents into domain experts. The CLI automatically detects your stack (Next.js, Laravel, React, etc.) and harmonizes rules so the AI understands your specific **Project DNA**.
+- **⚡ Faster Delivery, Better Quality**: Stop the "prompt-error-fix" cycle. By defining specs first, your first iteration is closer to the final product, drastically reducing lead time and rework.
+- **🤝 Unified Standards (Git-Synced)**: Eliminate "Shadow Architecture." All AI instructions and skills are committed to Git. Your team stays in sync, ensuring consistent output across the entire repository.
 
 ---
 
@@ -24,9 +28,7 @@ Spec-Driven Development (SDD) is a methodology that prioritizes **structural pla
 
 ### 1. Global Usage (Recommended)
 
-Install the package globally to access the `sdd` command in any project on your machine. This is the best way to maintain productivity, allowing you to apply your favorite configurations instantly.
-
-#### Installation
+Install globally to apply your favorite configurations and "scaffolders" instantly to any project.
 
 ```bash
 npm install -g @digitalelvis/sdd-workspace
@@ -83,15 +85,16 @@ npm run sdd -- init
 
 ## 🛠️ Main Commands
 
-| Command                       | Description                                                          |
-| :---------------------------- | :----------------------------------------------------------------- |
-| `sdd init`                    | Detects the stack and generates the `sdd.yml` file.                |
-| `sdd apply`                   | Synchronizes the workspace with current `sdd.yml` rules.           |
-| `sdd config list`             | Lists all global configurations in `~/.sddrc.yml`.                 |
-| `sdd config set <path> <val>` | Sets a global value (e.g., `sdd config set defaults.ide vscode`). |
-| `sdd find -s`                 | Search skills by provider, category, or name.                      |
-| `sdd find -r`                 | Search rules by provider, category, or name.                       |
-| `sdd add --skill <name>`      | (Beta) Adds a specific skill via registry.                         |
+| Command                       | Description                                                                                         |
+| :---------------------------- | :-------------------------------------------------------------------------------------------------- |
+| `sdd init`                    | Detects the stack and generates the `sdd.yml` file.                                                 |
+| `sdd apply`                   | Synchronizes the workspace with current `sdd.yml` rules.                                            |
+| `sdd doctor`                  | Read-only: compares resolved skills/rules from `sdd.yml` to `.agents/skills/` and `.agents/rules/`. |
+| `sdd config list`             | Lists all global configurations in `~/.sddrc.yml`.                                                  |
+| `sdd config set <path> <val>` | Sets a global value (e.g., `sdd config set defaults.ide vscode`).                                   |
+| `sdd find -s`                 | Search skills by provider, category, or name.                                                       |
+| `sdd find -r`                 | Search rules by provider, category, or name.                                                        |
+| `sdd add --skill <name>`      | (Beta) Adds a specific skill via registry.                                                          |
 
 ---
 
@@ -133,4 +136,4 @@ Refer to the [CONTRIBUTING.md](./CONTRIBUTING.md) guide for architecture details
 
 ---
 
-_Built with ❤️ for the next generation of AI-Native Engineers._
+Built with ❤️ to empower the next generation of AI-Augmented Engineering and Development.

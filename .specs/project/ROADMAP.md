@@ -48,7 +48,21 @@
 - [] **Upgrade Find Command**: Replace `find-skills` with a unified `find` command. Support `find -s` (skills) or `find -r` (rules) with composable filters `--provider`, `--category`, `--name`. Introduce `ResourceSearchService` (OCP/DIP) extending search to both resource types without duplicating logic.
   - Acceptance: `sdd find -s --provider sdd`, `sdd find -r --category architecture` both return filtered results; `SkillService.resolveFromProviders` delegates to new service; unit tests cover skill+rule combinations.
 
-## 0.1.3: Expansion
+## 0.1.3: Local `.agents` & `sdd.yml` validation
+
+Treat `.agents/` as a **local dev artifact** (like `node_modules`): not committed by default. **Intent for skills/stacks/agents stays in [`sdd.yml`](../../sdd.yml)** (existing SSOT). No separate manifest file and **no `sdd-lock.yml` in this milestone** — reproducibility for bundled skills follows CLI + npm versioning until external `agents pull` exists.
+
+- [x] **No root `.gitignore` mutation**: `WorkspaceService` must not append/create project `.gitignore` during scaffold (consumer repo owns root ignore policy).
+- [x] **`sdd doctor`**: Read-only checks using `sdd.yml` (`skills`, stacks, etc.) vs actual layout under `.agents/` where applicable; clear WARN when tree missing or incomplete.
+- [ ] **`sdd agents pull` / `update`**: Materialize or refresh artifacts from CLI/registry sources; never blindly overwrite `local/` without explicit flag.
+- [ ] **Init hint**: After `init`/`apply`, suggest `agents pull` when configured skills imply a sync step and tree is incomplete (once pull exists).
+- [ ] **Docs**: CONTRIBUTING/README note on `sdd.yml` as SSOT, gitignored `.agents/`, and optional private `local/` skills.
+
+Spec: `.specs/features/agents-local-dev-manifest/spec.md`.
+
+**Deferred (not 0.1.3):** `sdd-lock.yml` or equivalent lockfile — revisit when `agents pull` resolves **mutable external** sources (registry URLs, floating tags); until then `package-lock.json` + pinned CLI version suffice for this repo.
+
+## 0.1.4: Expansion
 
 - [ ] **CONTRIBUIT Guides**: We need create a guide for contrbibuite with new rules, skills, tools, stacks with references in commit and PR for validation.
 - [ ] **Automated Security Guardrails**: Add `security-scan` capabilities with PR commenting and notification integration when a new commit is to include rules, skills, tools, stacks, etc.
@@ -58,7 +72,7 @@
 - [ ] Implement `apply` command for global workspace updates.
 - [ ] Add more "Skills" to the default registry (e.g., Python-specific, Cloud-native).
 
-## 0.1.4: Ecosystem
+## 0.1.5: Ecosystem
 
 - [ ] Plugin system for external providers.
 - [ ] Centralized "Skill Hub" for sharing community skills.
@@ -66,6 +80,6 @@
 
 ## Status Tracking
 
-- **Current Version**: 0.1.2
-- **Last Achievement**: Implemented dynamic CI/CD workflow composer (`WorkflowComposer`).
-- **Next Milestone**: YAML-only config migration + unified `find` command.
+- **Current Version**: 0.1.3
+- **Last Achievement**: **`sdd doctor`** shipped (read-only); **0.1.3** scoped for local `.agents` + **`sdd.yml` as SSOT** (no parallel manifest, no `sdd-lock.yml` in this line); scaffold no longer mutates root `.gitignore`.
+- **Next Milestone**: `agents pull` / `update`; optional docs for `sdd.yml` + gitignored `.agents/`. Consider `sdd-lock.yml` only after external resolution exists.
