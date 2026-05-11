@@ -1,4 +1,3 @@
-import chalk from "chalk";
 import inquirer from "inquirer";
 import { detectFramework } from "../../../analyzer/framework-detector";
 import { detectDatabase } from "../../../analyzer/DatabaseDetector";
@@ -12,6 +11,8 @@ import { SupportedStack } from "../../../domain/enums/SupportedStack";
 import { ExistenceChecker } from "../../../utils/ExistenceChecker";
 
 import { RegistryLoader } from "../../../resources/RegistryLoader";
+import { TerminalUi } from "../../../ui";
+import pkg from "../../../../package.json";
 
 export interface InitOptions {
   ide?: string;
@@ -25,7 +26,16 @@ export interface InitOptions {
  * Orchestrates stack detection, config resolution, and workspace injection.
  */
 export async function initAction(options: InitOptions): Promise<void> {
-  console.log(chalk.blue.bold("\n🚀 Welcome to AI - SDD Engine for Workspaces!\n"));
+  TerminalUi.printBanner({
+    headline: "AI SDD ENGINE",
+    version: pkg.version,
+    tagline: "Curated workflows to power your coding agents",
+  });
+  TerminalUi.footerHints([
+    { key: "space", text: "toggle choices", variant: "default" },
+    { key: "enter", text: "confirm", variant: "success" },
+    { key: "esc", text: "back", variant: "warn" },
+  ]);
 
   const targetDir = process.cwd();
   const resolver = new ConfigResolver();
@@ -40,7 +50,8 @@ export async function initAction(options: InitOptions): Promise<void> {
       .map((s: string) => s.trim().toLowerCase())
       .filter((a: string) => {
         const valid = Object.values(AiAgent).includes(a as AiAgent);
-        if (!valid) console.log(chalk.yellow(`⚠️  Agent '${a}' not recognized. Ignoring.`));
+        if (!valid)
+          TerminalUi.warnLine(`Agent '${a}' not recognized. Ignoring.`);
         return valid;
       }) as AiAgent[];
   }
@@ -50,10 +61,21 @@ export async function initAction(options: InitOptions): Promise<void> {
   const detectedDbs = detectDatabase(targetDir, registry.databases);
   const detectedSecurity = detectSecurity(targetDir);
 
-  console.log(chalk.cyan.bold("🚀 Detected DNA in your project:"));
-  console.log(chalk.white(`- Stacks: ${detectedStacks.length > 0 ? detectedStacks.join(", ") : "(none detected)"}`));
-  console.log(chalk.white(`- Databases: ${detectedDbs.length > 0 ? detectedDbs.join(", ") : "(none detected)"}`));
-  console.log(chalk.white(`- Security: ${detectedSecurity.length > 0 ? detectedSecurity.join(", ") : "(none detected)"}\n`));
+  TerminalUi.section("Detected project DNA");
+  TerminalUi.kv(
+    "Stacks",
+    detectedStacks.length > 0 ? detectedStacks.join(", ") : "(none detected)",
+  );
+  TerminalUi.kv(
+    "Databases",
+    detectedDbs.length > 0 ? detectedDbs.join(", ") : "(none detected)",
+  );
+  TerminalUi.kv(
+    "Security",
+    detectedSecurity.length > 0
+      ? detectedSecurity.join(", ")
+      : "(none detected)",
+  );
 
   // 3. Interactive prompt logic
   let interactiveIde: string | undefined = options.ide;
@@ -69,13 +91,16 @@ export async function initAction(options: InitOptions): Promise<void> {
         name: "stack",
         message: "How would you like to proceed with the stack configuration?",
         choices: [
-          { name: "I will create it with AI, I don't know the stack", value: SupportedStack.AI_GENERIC },
+          {
+            name: "I will create it with AI, I don't know the stack",
+            value: SupportedStack.AI_GENERIC,
+          },
           new inquirer.Separator(),
           ...Object.values(SupportedStack)
-            .filter(s => s !== SupportedStack.AI_GENERIC)
-            .map(s => ({ name: s, value: s }))
-        ]
-      }
+            .filter((s) => s !== SupportedStack.AI_GENERIC)
+            .map((s) => ({ name: s, value: s })),
+        ],
+      },
     ]);
     interactiveStacks = [stackAnswer.stack as SupportedStack];
   }
@@ -89,12 +114,16 @@ export async function initAction(options: InitOptions): Promise<void> {
         message: "Select the databases you plan to use:",
         choices: [
           { name: "None", value: SupportedDatabase.NONE },
-          ...Object.values(SupportedDatabase).filter(d => d !== SupportedDatabase.NONE)
+          ...Object.values(SupportedDatabase).filter(
+            (d) => d !== SupportedDatabase.NONE,
+          ),
         ],
-        default: [SupportedDatabase.NONE]
-      }
+        default: [SupportedDatabase.NONE],
+      },
     ]);
-    interactiveDbs = dbAnswer.selectedDbs.includes(SupportedDatabase.NONE) ? [] : dbAnswer.selectedDbs;
+    interactiveDbs = dbAnswer.selectedDbs.includes(SupportedDatabase.NONE)
+      ? []
+      : dbAnswer.selectedDbs;
   }
 
   // Prompt for IDE and AI Agents if not specified
@@ -105,14 +134,14 @@ export async function initAction(options: InitOptions): Promise<void> {
         name: "ide",
         message: "Which IDE ecosystem do you want to configure?",
         choices: ["none", ...Object.values(IdeEnvironment)],
-        default: "none"
+        default: "none",
       },
       {
         type: "checkbox",
         name: "selectedAgents",
         message: "Which AI agents are you using?",
         choices: Object.values(AiAgent),
-      }
+      },
     ]);
 
     interactiveIde = basicAnswers.ide === "none" ? undefined : basicAnswers.ide;
@@ -120,44 +149,59 @@ export async function initAction(options: InitOptions): Promise<void> {
   }
 
   // Step 2: Tooling & Concerns selection
-  const toolsChoices = Object.keys(registry.tools || {}).map(toolId => {
-    const tool = registry.tools![toolId];
-    const isInstalled = ExistenceChecker.isAlreadyInstalled(toolId, targetDir);
-    const isRecommended = tool.recommendedStacks && (
-      tool.recommendedStacks.includes("all") ||
-      tool.recommendedStacks.some(s => interactiveStacks.includes(s as any))
-    );
+  const allToolIds = Object.keys(registry.tools || {});
+  const installedToolIds = allToolIds.filter((toolId) =>
+    ExistenceChecker.isAlreadyInstalled(toolId, targetDir),
+  );
 
-    if (isInstalled) {
+  if (installedToolIds.length > 0) {
+    TerminalUi.section("Detected tools already installed");
+    for (const toolId of installedToolIds) {
+      const display = registry.tools?.[toolId]?.displayName ?? toolId;
+      TerminalUi.successLine(`${display} (${toolId})`);
+    }
+  }
+
+  const selectableToolChoices = allToolIds
+    .filter((toolId) => !installedToolIds.includes(toolId))
+    .map((toolId) => {
+      const tool = registry.tools![toolId];
+      const isRecommended =
+        tool.recommendedStacks &&
+        (tool.recommendedStacks.includes("all") ||
+          tool.recommendedStacks.some((s) =>
+            interactiveStacks.includes(s as any),
+          ));
+
       return {
         name: tool.displayName,
         value: toolId,
-        checked: true,
-        disabled: "already installed"
+        checked: Boolean(isRecommended),
       };
-    }
+    });
 
-    return {
-      name: tool.displayName,
-      value: toolId,
-      checked: isRecommended
-    };
-  });
+  let manualSelectedTools: string[] = [];
+  if (selectableToolChoices.length > 0) {
+    TerminalUi.section("Select recommended tools");
+    const toolAnswers = await inquirer.prompt([
+      {
+        type: "checkbox",
+        name: "selectedTools",
+        message: "Choose additional tools to configure:",
+        choices: selectableToolChoices,
+      },
+    ]);
+    manualSelectedTools = toolAnswers.selectedTools || [];
+  } else {
+    TerminalUi.section("Select recommended tools");
+    TerminalUi.infoLine(
+      "No additional selectable tools. All detected tools are already installed.",
+    );
+  }
 
-  const toolAnswers = await inquirer.prompt([
-    {
-      type: "checkbox",
-      name: "selectedTools",
-      message: "Select the recommended tools for your project:",
-      choices: toolsChoices
-    }
-  ]);
-
-  const manualSelectedTools = toolAnswers.selectedTools || [];
   const allSelectedTools = [...manualSelectedTools];
-
-  for (const toolId of Object.keys(registry.tools || {})) {
-    if (ExistenceChecker.isAlreadyInstalled(toolId, targetDir) && !allSelectedTools.includes(toolId)) {
+  for (const toolId of installedToolIds) {
+    if (!allSelectedTools.includes(toolId)) {
       allSelectedTools.push(toolId);
     }
   }
@@ -165,7 +209,7 @@ export async function initAction(options: InitOptions): Promise<void> {
   // Step 3: Git Strategy selection
   let interactiveGitStrategy = options.gitStrategy;
   if (!interactiveGitStrategy && registry.gitStrategies) {
-    const gitOptions = Object.keys(registry.gitStrategies).map(key => {
+    const gitOptions = Object.keys(registry.gitStrategies).map((key) => {
       const def = registry.gitStrategies![key];
       return { name: def.displayName, value: key };
     });
@@ -179,11 +223,12 @@ export async function initAction(options: InitOptions): Promise<void> {
           choices: [
             { name: "None (Skip Git rules)", value: "none" },
             new inquirer.Separator(),
-            ...gitOptions
-          ]
-        }
+            ...gitOptions,
+          ],
+        },
       ]);
-      interactiveGitStrategy = gitAnswer.gitStrategy === "none" ? undefined : gitAnswer.gitStrategy;
+      interactiveGitStrategy =
+        gitAnswer.gitStrategy === "none" ? undefined : gitAnswer.gitStrategy;
     }
   }
 
@@ -193,45 +238,57 @@ export async function initAction(options: InitOptions): Promise<void> {
       type: "confirm",
       name: "generateCICD",
       message: "Do you want to generate a GitHub Actions CI/CD workflow?",
-      default: true
-    }
+      default: true,
+    },
   ]);
 
   // Step 4: Final Injection Summary and Confirmation
-  console.log(chalk.cyan.bold("\n📋 Injection Summary:"));
-  console.log(chalk.white(`- IDE: ${interactiveIde || "none"}`));
-  console.log(chalk.white(`- AI Agents: ${interactiveAgents.length > 0 ? interactiveAgents.join(", ") : "none"}`));
-  console.log(chalk.white(`- Stacks: ${interactiveStacks.join(", ")}`));
-  console.log(chalk.white(`- Databases: ${interactiveDbs.length > 0 ? interactiveDbs.join(", ") : "none"}`));
-  console.log(chalk.white(`- Security: ${detectedSecurity.length > 0 ? detectedSecurity.join(", ") : "none"}`));
-  console.log(chalk.white(`- Tools: ${allSelectedTools.length > 0 ? allSelectedTools.join(", ") : "none"}`));
-  console.log(chalk.white(`- Git Strategy: ${interactiveGitStrategy || "none"}`));
-  console.log(chalk.white(`- CI/CD Generation: ${cicdAnswer.generateCICD ? "yes" : "no"}\n`));
+  TerminalUi.section("Injection summary");
+  TerminalUi.kv("IDE", interactiveIde || "none");
+  TerminalUi.kv(
+    "AI Agents",
+    interactiveAgents.length > 0 ? interactiveAgents.join(", ") : "none",
+  );
+  TerminalUi.kv("Stacks", interactiveStacks.join(", "));
+  TerminalUi.kv(
+    "Databases",
+    interactiveDbs.length > 0 ? interactiveDbs.join(", ") : "none",
+  );
+  TerminalUi.kv(
+    "Security",
+    detectedSecurity.length > 0 ? detectedSecurity.join(", ") : "none",
+  );
+  TerminalUi.kv(
+    "Tools",
+    allSelectedTools.length > 0 ? allSelectedTools.join(", ") : "none",
+  );
+  TerminalUi.kv("Git Strategy", interactiveGitStrategy || "none");
+  TerminalUi.kv("CI/CD Generation", cicdAnswer.generateCICD ? "yes" : "no");
 
   const finalConfirm = await inquirer.prompt([
     {
       type: "confirm",
       name: "proceed",
       message: "Do you want to confirm and proceed with the injection?",
-      default: true
-    }
+      default: true,
+    },
   ]);
 
   if (!finalConfirm.proceed) {
-    console.log(chalk.red("\nInitialization aborted."));
+    TerminalUi.doneError("Initialization aborted.");
     process.exit(0);
   }
 
   const resolved = resolver.resolve(
-    { 
-      agents: interactiveAgents, 
-      ide: interactiveIde, 
-      lint: options.lint, 
-      stacks: interactiveStacks, 
-      database: interactiveDbs, 
+    {
+      agents: interactiveAgents,
+      ide: interactiveIde,
+      lint: options.lint,
+      stacks: interactiveStacks,
+      database: interactiveDbs,
       security: detectedSecurity,
       gitStrategy: interactiveGitStrategy,
-      generateCICD: cicdAnswer.generateCICD
+      generateCICD: cicdAnswer.generateCICD,
     },
     targetDir,
   );
@@ -259,12 +316,17 @@ export async function initAction(options: InitOptions): Promise<void> {
   }
 
   // 4. Execute injection
-  console.log(chalk.cyan(`[Injector] Sideloading AI engineering rules and SDD framework...\n`));
+  TerminalUi.section("Provisioning workspace");
+  TerminalUi.tip(
+    "[Injector] Sideloading AI engineering rules and SDD framework...",
+  );
   await orchestrator.execute(targetDir, resolved);
 
   // 5. Persist resolved config to sdd.config.json
   const configContent = resolver.generateLocalConfigContent(resolved);
   orchestrator.writeLocalConfig(targetDir, configContent);
 
-  console.log(chalk.green.bold("\n✨ Workspace successfully prepared for advanced Spec-Driven Development!"));
+  TerminalUi.doneOk(
+    "Workspace successfully prepared for advanced Spec-Driven Development!",
+  );
 }

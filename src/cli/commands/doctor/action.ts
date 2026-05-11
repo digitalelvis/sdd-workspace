@@ -1,16 +1,7 @@
-import chalk from "chalk";
 import path from "path";
 import { Doctor } from "../../../analyzer/Doctor";
-
-function printLine(level: "ok" | "warn" | "error", message: string): void {
-  if (level === "ok") {
-    console.log(chalk.green(`  ✔ ${message}`));
-  } else if (level === "warn") {
-    console.log(chalk.yellow(`  ⚠ ${message}`));
-  } else {
-    console.log(chalk.red(`  ✖ ${message}`));
-  }
-}
+import { TerminalUi } from "../../../ui";
+import pkg from "../../../../package.json";
 
 /**
  * Read-only validation of sdd.yml vs .agents layout.
@@ -18,21 +9,42 @@ function printLine(level: "ok" | "warn" | "error", message: string): void {
 export function doctorAction(options: { cwd?: string }): void {
   const targetDir = options.cwd ? path.resolve(options.cwd) : process.cwd();
 
-  console.log(chalk.blue.bold("\n🩺 SDD doctor\n"));
-  console.log(chalk.gray(`  Working directory: ${targetDir}\n`));
+  TerminalUi.printBanner({
+    headline: "SDD DOCTOR",
+    version: pkg.version,
+    tagline: "Read-only workspace health checks",
+  });
+  TerminalUi.infoLine(`Working directory: ${targetDir}`);
+  TerminalUi.divider();
 
   const result = Doctor.run(targetDir);
+  TerminalUi.section("Validation report");
   for (const line of result.lines) {
-    printLine(line.level, line.message);
+    if (line.level === "ok") {
+      TerminalUi.successLine(line.message);
+    } else if (line.level === "warn") {
+      TerminalUi.warnLine(line.message);
+    } else {
+      TerminalUi.errorLine(line.message);
+    }
   }
 
-  console.log("");
   if (result.exitCode === 0) {
-    console.log(chalk.green.bold("Done — no blocking issues detected.\n"));
+    TerminalUi.footerHints([
+      {
+        key: "sdd apply",
+        text: "re-sync workspace resources",
+        variant: "success",
+      },
+      { key: "sdd init", text: "bootstrap missing files", variant: "default" },
+    ]);
+    TerminalUi.doneOk("Done — no blocking issues detected.");
   } else {
-    console.log(
-      chalk.red.bold("Done — fix errors above (often: run `sdd apply`).\n"),
-    );
+    TerminalUi.footerHints([
+      { key: "sdd apply", text: "fix missing resources", variant: "warn" },
+      { key: "sdd init", text: "re-bootstrap if needed", variant: "default" },
+    ]);
+    TerminalUi.doneError("Done — fix errors above (often: run `sdd apply`).");
   }
 
   process.exit(result.exitCode);
